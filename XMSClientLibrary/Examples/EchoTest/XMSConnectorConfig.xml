@@ -1,0 +1,5 @@
+<xmsconfig>
+<techtype>REST</techtype>
+<baseurl>http://192.168.1.101:81/default/</baseurl>
+<appid>app</appid>
+</xmsconfig>
