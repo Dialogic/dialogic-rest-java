@@ -283,7 +283,7 @@ public class XMSRestConference extends XMSConference{
             
         } // end if
     //TODO get setCaptionDuration working
-    //l_conf.setCaptionDuration(""+ConferenceOptions.m_CaptionDuration);
+    l_conf.setCaptionDuration(""+ConferenceOptions.m_CaptionDuration);
     
      if(ConferenceOptions.m_BeepEnabled) {
             

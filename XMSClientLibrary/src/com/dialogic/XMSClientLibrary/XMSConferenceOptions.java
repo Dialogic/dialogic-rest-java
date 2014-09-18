@@ -14,7 +14,7 @@ public class XMSConferenceOptions {
     XMSMediaType m_MediaType = XMSMediaType.VIDEO;
     String m_Layout = "0"; //TODO need to change this to a Enum with meaningful values
     boolean m_CaptionEnabled=true;
-    int m_CaptionDuration=20;
+    String m_CaptionDuration="20s";
     boolean m_BeepEnabled = true;
     boolean m_DigitClampingEnabled = true;
     boolean m_AGCEnabled = true;
@@ -29,7 +29,7 @@ public class XMSConferenceOptions {
      m_MediaType = XMSMediaType.VIDEO;
      m_Layout = "0"; //TODO need to change this to a Enum with meaningful values
      m_CaptionEnabled=true;
-     m_CaptionDuration=20;
+     String m_CaptionDuration="20s";
      m_BeepEnabled = true;
      m_DigitClampingEnabled = true;
      m_AGCEnabled = true;
@@ -50,7 +50,7 @@ public class XMSConferenceOptions {
      public void EnableCaption(boolean a_isenabled){
          m_CaptionEnabled = a_isenabled;
     }
-     public void SetCaptionDuration(int a_duration){
+     public void SetCaptionDuration(String a_duration){
          m_CaptionDuration=a_duration;
      }
      public void EnableBeep(boolean a_isenabled){
