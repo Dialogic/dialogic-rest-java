@@ -21,6 +21,7 @@ public enum XMSEventType {
     CALL_UPDATED,
     CALL_ALARM,
     CALL_MESSAGE ,
-    CALL_SENDMESSAGE_END
+    CALL_SENDMESSAGE_END,
+    CALL_STATE
        
 }

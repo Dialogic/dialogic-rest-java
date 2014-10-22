@@ -1177,7 +1177,18 @@ public class XMSRestCall extends XMSCall{
                     UnblockIfNeeded(l_callbackevt);
                     }
                     //end incoming
-                } else if (l_evt.eventType.contentEquals("connected")) {
+                } else if (l_evt.eventType.contentEquals("stream")) {
+                    logger.info("Processing state event");
+                                        
+                    EventData[] l_datalist=l_evt.event.getEventDataArray(); // 27-Jul-2012 dsl
+                        for(EventDataDocument.EventData ed: l_datalist){                         // 27-Jul-2012 dsl
+                            if (ed.getName().contentEquals(EventDataName.REASON.toString())){                           // 27-Jul-2012 dsl
+                                l_callbackevt.setReason(ed.getValue());                          // 27-Jul-2012 dsl
+                            } 
+                        }
+                    l_callbackevt.CreateEvent(XMSEventType.CALL_STATE, this, "", l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
+                    //end stream state
+                }else if (l_evt.eventType.contentEquals("connected")) {
                     logger.info("Processing connected event");
                     setState(XMSCallState.CONNECTED);
                     
@@ -1190,7 +1201,7 @@ public class XMSRestCall extends XMSCall{
                     l_callbackevt.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
                     UnblockIfNeeded(l_callbackevt);
                     //end connected
-                }else if (l_evt.eventType.contentEquals("hangup")) {
+                } else if (l_evt.eventType.contentEquals("hangup")) {
                     logger.info("Processing hangup event");
                     setState(XMSCallState.DISCONNECTED);
                     EventData[] l_datalist=l_evt.event.getEventDataArray();// 30-Jul-2012 dsl
