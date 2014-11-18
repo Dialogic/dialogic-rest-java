@@ -2524,6 +2524,12 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
         //TODO need to get AUTOMATIC mode working by adding a check to see if the call is a video call or not, for not just setting it to SENDRECV by default
         else if(a_conf.AddOptions.m_videodirection == XMSMediaDirection.AUTOMATIC) l_addparty.setVideo(MediaDirection.SENDRECV);
         
+        if(a_conf.AddOptions.m_caption==""){
+            l_addparty.setCaption(getConnectionAddress());
+        } else{
+            l_addparty.setCaption(a_conf.AddOptions.m_caption);
+        }
+        
        //l_addparty.setVideo(MediaDirection.INACTIVE);
        // l_addparty.setVideo(MediaDirection.SENDRECV);
         
