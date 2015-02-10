@@ -302,15 +302,40 @@ public class xmsEventHandler implements Runnable {
                 String xmlStringPrime = null;
                 String xmlStringCleaned;
                 logger.info("====== WAITING FOR EVENT==========");
+                
                 try {
-                    while ((line = reader.readLine()) != null) {
+                   //while ((line = reader.readLine()) != null) {
+                   for(;;)
+                   {
+                       String m_line = reader.readLine();
+                       int ChunkSize = Integer.parseInt(m_line, 16);
+                       char buff[] =new char[ChunkSize];
+                       if (ChunkSize<=0)
+                           break;
+                       
+                       xmlString = "";
+                       int readsize = 0;
+                  	 int  count = 0;
 
-                        xmlString = xmlString+line;
-
+                       while(readsize < ChunkSize){
+                            readsize = reader.read(buff,readsize,ChunkSize-readsize) + readsize;
+ ;
+                            logger.debug("Reading "+readsize+" of "+ChunkSize);
+                           
+                            count = count + 1 ;
+                             //logger.info("The interations are " + count);
+                          
+                       }
+                       xmlString +=new String(buff);
+                       
+                        logger.debug("RAW XML': " + xmlString);
+                        
                             /************************************************************
                              * Check to see if the XML data is complete
                              ************************************************************/
-                            if (line.equals("</web_service>") ){
+                            //if (line.contains("</web_service>") )
+                        {
+                                
                                 XMSRestEvent l_evt=new XMSRestEvent();
                                 l_evt.rawstring=xmlString;
                                 logger.info("====== NEW MESSAGE HAS BEEN RECEIVED ==========");
