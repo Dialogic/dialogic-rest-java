@@ -1932,7 +1932,21 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
         l_call = l_WMS.addNewCall();
         
         l_call.setAccept(BooleanType.YES);
-        //TODO may need to add in a parm to set if this should be yes or no.
+         // Set Media getType parm
+        switch (AcceptcallOptions.m_mediatype) {
+            case AUDIO:
+                l_call.setMedia(MediaType.AUDIO);
+                break;
+            case VIDEO:
+                l_call.setMedia(MediaType.AUDIOVIDEO);
+                break;
+            case MESSAGE:
+                l_call.setMedia(MediaType.MESSAGE);
+                break;
+            case UNKNOWN:
+                l_call.setMedia(MediaType.UNKNOWN);
+        } // end switch
+
         l_call.setEarlyMedia(BooleanType.YES);
         ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
 
