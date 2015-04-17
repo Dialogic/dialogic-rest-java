@@ -45,7 +45,7 @@ public abstract class XMSCall extends XMSObject{
      public XMSPlayRecordOptions PlayRecordOptions = new XMSPlayRecordOptions();
      public XMSPlayPhraseOptions PlayPhraseOptions = new XMSPlayPhraseOptions();
      public XMSSendMessageOptions SendMessageOptions = new XMSSendMessageOptions();
-     
+     public XMSSendInfoOptions SendInfoOptions = new XMSSendInfoOptions();
      /**
       * CTor for the Object.  Default takes no parms
       */
@@ -309,6 +309,23 @@ public abstract class XMSCall extends XMSObject{
       * @return 
       */
      public XMSReturnCode SendMessage(String a_message){
+         return XMSReturnCode.NOT_IMPLEMENTED;
+     }
+     /**
+      * Send out the DTMF string to the network 
+      * Will terminate with a CALL_END_DTMF event
+      * @param a_dialstring - String that is to be sent
+      * @return 
+      */
+     public XMSReturnCode SendDtmf(String a_dialstring){
+         return XMSReturnCode.NOT_IMPLEMENTED;
+     }
+    /**
+      * Send out the message using MRCP 
+      * @param a_message - String that is to be sent
+      * @return 
+      */
+     public XMSReturnCode SendInfo(String a_message){
          return XMSReturnCode.NOT_IMPLEMENTED;
      }
 }

@@ -440,6 +440,54 @@ public class XMSRestCall extends XMSCall{
         }
     }
     
+       /**
+      * Send out the message using info
+      * @param a_message - String that is to be sent
+      * @return 
+      */
+    @Override
+     public XMSReturnCode SendInfo(String a_message){
+         FunctionLogger logger=new FunctionLogger("SendInfo",this,m_logger);
+        logger.args(a_message);
+        
+             
+        String l_urlext;
+        SendCommandResponse RC ;
+        //todo!!: create the payload and add the call id.
+        l_urlext = "calls/" + m_callIdentifier;
+
+        String XMLPAYLOAD;
+       
+        // RDM: Build and return a updatecall payload
+        XMLPAYLOAD = buildSendInfoPayload(a_message); 
+
+      //  logger.info("Sending message ---->  " + XMLPAYLOAD);
+        RC = m_connector.SendCommand(this,RESTOPERATION.PUT, l_urlext, XMLPAYLOAD);
+          
+         if (RC.get_scr_status_code() == 200){
+            m_pendingtransactionInfo.setDescription("SendInfo="+a_message);
+            m_pendingtransactionInfo.setTransactionId(RC.get_scr_transaction_id());
+            m_pendingtransactionInfo.setResponseData(RC);
+           /* 
+            setState(XMSCallState.SENDMESSAGE);
+                    try {
+                        BlockIfNeeded(XMSEventType.CALL_SENDMESSAGE_END);
+                    } catch (InterruptedException ex) {
+                        logger.error("Exception:"+ex);
+                    }
+            */
+                    return XMSReturnCode.SUCCESS;
+
+        } else {
+
+            logger.info("SendFailed Failed, Status Code: " + RC.get_scr_status_code());
+            
+            //setState(XMSCallState.NULL);
+            return XMSReturnCode.FAILURE;
+
+        }
+         
+     }
      /**
       * Send out the message using MRCP 
       * @param a_message - String that is to be sent
@@ -487,6 +535,55 @@ public class XMSRestCall extends XMSCall{
 
         }
          
+     }
+     
+      /**
+      * Send out the DTMF string to the network 
+      * Will terminate with a CALL_END_DTMF event
+      * @param a_dialstring - String that is to be sent
+      * @return 
+      */
+     public XMSReturnCode SendDtmf(String a_dialstring){
+         FunctionLogger logger=new FunctionLogger("SendDtmf",this,m_logger);
+        logger.args(a_dialstring);
+        
+             
+        String l_urlext;
+        SendCommandResponse RC ;
+        //todo!!: create the payload and add the call id.
+        l_urlext = "calls/" + m_callIdentifier;
+
+        String XMLPAYLOAD;
+       
+        // RDM: Build and return a updatecall payload
+        XMLPAYLOAD = buildSendDtmfPayload(a_dialstring); 
+
+      //  logger.info("Sending message ---->  " + XMLPAYLOAD);
+        RC = m_connector.SendCommand(this,RESTOPERATION.PUT, l_urlext, XMLPAYLOAD);
+          
+         if (RC.get_scr_status_code() == 200){
+            m_pendingtransactionInfo.setDescription("SendDtmf="+a_dialstring);
+            m_pendingtransactionInfo.setTransactionId(RC.get_scr_transaction_id());
+            m_pendingtransactionInfo.setResponseData(RC);
+            
+            setState(XMSCallState.SENDDTMF);
+                    try {
+                        BlockIfNeeded(XMSEventType.CALL_SENDDTMF_END);
+                    } catch (InterruptedException ex) {
+                        logger.error("Exception:"+ex);
+                    }
+
+                    return XMSReturnCode.SUCCESS;
+
+        } else {
+
+            logger.info("SendDtmf Failed, Status Code: " + RC.get_scr_status_code());
+            
+            //setState(XMSCallState.NULL);
+            return XMSReturnCode.FAILURE;
+
+        }
+      
      }
  String RestGetCalledAddress(String rawxml){
      FunctionLogger logger=new FunctionLogger("******RestGetCalledAddress",this,m_logger);
@@ -1251,6 +1348,52 @@ public class XMSRestCall extends XMSCall{
                     l_callbackevt.CreateEvent(XMSEventType.CALL_SENDMESSAGE_END, this, "", l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
                     UnblockIfNeeded(l_callbackevt);
                     //end hangup
+                }else if (l_evt.eventType.contentEquals("info") ) {
+                    logger.info("Processing info event");
+                    EventData[] l_datalist=l_evt.event.getEventDataArray();// 30-Jul-2012 dsl
+                    for(EventDataDocument.EventData ed: l_datalist){                            // 30-Jul-2012 dsl
+                        if (ed.getName().contentEquals(EventDataName.REASON.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setReason(ed.getValue());                             // 30-Jul-2012 dsl
+                        } else if (ed.getName().contentEquals(EventDataName.CONTENT.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setData(ed.getValue());                             // 30-Jul-2012 dsl
+                            logger.info("setting data content to "+l_callbackevt.getData());
+                        }
+                        
+                    }
+                    l_callbackevt.CreateEvent(XMSEventType.CALL_INFO, this, l_callbackevt.getData(), l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
+                    UnblockIfNeeded(l_callbackevt);
+                    //end info  
+                    }
+                    else if (l_evt.eventType.contentEquals("dtmf") ) {
+                    logger.info("Processing DTMF event");
+                    EventData[] l_datalist=l_evt.event.getEventDataArray();// 30-Jul-2012 dsl
+                    for(EventDataDocument.EventData ed: l_datalist){                            // 30-Jul-2012 dsl
+                        if (ed.getName().contentEquals(EventDataName.REASON.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setReason(ed.getValue());                             // 30-Jul-2012 dsl
+                        } else if (ed.getName().contentEquals(EventDataName.DIGITS.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setData(ed.getValue());                             // 30-Jul-2012 dsl
+                            logger.info("setting data content to "+l_callbackevt.getData());
+                        }
+                        
+                    }
+                    l_callbackevt.CreateEvent(XMSEventType.CALL_DTMF, this, l_callbackevt.getData(), l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
+                    UnblockIfNeeded(l_callbackevt);
+                    //end dtmf                  
+                }else if (l_evt.eventType.contentEquals("end_dtmf") ) { // added by sbp 18-Feb-2015 
+                    logger.info("Processing end_dtmf event");
+                    EventData[] l_datalist=l_evt.event.getEventDataArray();// 30-Jul-2012 dsl
+                    for(EventDataDocument.EventData ed: l_datalist){                            // 30-Jul-2012 dsl
+                        if (ed.getName().contentEquals(EventDataName.REASON.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setReason(ed.getValue());                             // 30-Jul-2012 dsl
+                        } else if (ed.getName().contentEquals(EventDataName.CONTENT.toString())){                              // 30-Jul-2012 dsl
+                            l_callbackevt.setData(ed.getValue());                             // 30-Jul-2012 dsl
+                            logger.info("setting data content to "+l_callbackevt.getData());
+                        }
+                        
+                    }
+                    l_callbackevt.CreateEvent(XMSEventType.CALL_SENDDTMF_END, this, l_callbackevt.getData(), l_callbackevt.getReason(), l_evt.toString()); // 30-Jul-2012 dsl
+                    UnblockIfNeeded(l_callbackevt);
+                    //end end_dtmf     					
                 }else {
                     logger.info("Unprocessed event type: " + l_evt.eventType);
                 }
@@ -1472,6 +1615,8 @@ public class XMSRestCall extends XMSCall{
                   
              }
         }
+        l_call.setAsyncDtmf(BooleanType.YES);
+        
         if(MakecallOptions.m_calledAddress.length()>0){
                  l_call.setCalledUri(MakecallOptions.m_calledAddress);
           }
@@ -2111,9 +2256,9 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
     } // end buildRedirectPayload
   /**
      * CLASS TYPE   :   private
-     * METHOD       :   buildRedirectPayload
+     * METHOD       :   buildSendMessagePayload
      *
-     * DESCRIPTION  :   Builds Transfer Payload
+     * DESCRIPTION  :   Builds SendMessage Payload
      *
      * PARAMETERS   :   String to redirect too
      *
@@ -2181,7 +2326,132 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
 
 
     } // end buildSendMessage
-          
+  /**
+     * CLASS TYPE   :   private
+     * METHOD       :   buildSendDtmfPayload
+     *
+     * DESCRIPTION  :   Builds SendDtmf Payload
+     *
+     * PARAMETERS   :   String to send to the network
+     *
+     *
+     * RETURN       :   Payload string
+     *
+     * Author(s)    :   Dan Wolanski
+     * Created      :   4/17/2015
+     * Updated      :   
+     *
+     *
+     * HISTORY      :
+     *************************************************************************/
+    private String buildSendDtmfPayload(String a_dialstring) {
+        FunctionLogger logger=new FunctionLogger("buildSendDtmfPayload",this,m_logger);
+        String l_rqStr = "";
+
+        WebServiceDocument l_WMSdoc;
+        WebServiceDocument.WebService l_WMS;
+        XmlNMTOKEN  l_ver; 
+
+        // Create a new Web Service Doc Instance
+        l_WMSdoc = WebServiceDocument.Factory.newInstance();
+        l_WMS = l_WMSdoc.addNewWebService();
+
+        Call l_call; // Create a call instance
+        CallAction l_callAction; // Call Action instance
+
+        //PlayrecordDocument.Playrecord l_record;
+        SendDtmfDocument.SendDtmf l_senddtmf;
+
+        // Create a new Web Service Doc Instance
+        l_WMSdoc = WebServiceDocument.Factory.newInstance();
+        l_WMS = l_WMSdoc.addNewWebService();
+
+        // Create a new XMLToken Instance
+        l_ver = XmlNMTOKEN.Factory.newInstance();
+        l_ver.setStringValue("1.0");
+        l_WMS.xsetVersion(l_ver);
+
+        // add a new call
+        l_call = l_WMS.addNewCall();
+
+        // Add a new Call Action to the call
+        l_callAction = l_call.addNewCallAction();
+
+        // Add a new Transfer to the callAction
+        
+        l_senddtmf = l_callAction.addNewSendDtmf();
+        l_senddtmf.setDigits(a_dialstring);
+        
+        ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
+
+        try {
+            l_WMSdoc.save(l_newDialog);
+            l_rqStr = l_WMSdoc.toString();
+
+            } catch (IOException ex) {
+            logger.error(ex);
+        }
+
+       // logger.debug ("Returning Payload:\n " + l_rqStr);
+        return l_rqStr;  // Return the requested string...
+
+
+    } // end buildSendDTMF
+
+   private String buildSendInfoPayload(String a_message) {
+        FunctionLogger logger=new FunctionLogger("buildSendInfoPayload",this,m_logger);
+        String l_rqStr = "";
+
+        WebServiceDocument l_WMSdoc;
+        WebServiceDocument.WebService l_WMS;
+        XmlNMTOKEN  l_ver; 
+
+        // Create a new Web Service Doc Instance
+        l_WMSdoc = WebServiceDocument.Factory.newInstance();
+        l_WMS = l_WMSdoc.addNewWebService();
+
+        Call l_call; // Create a call instance
+        CallAction l_callAction; // Call Action instance
+
+        //PlayrecordDocument.Playrecord l_record;
+        SendInfoDocument.SendInfo l_sendmessage;
+        // Create a new Web Service Doc Instance
+        l_WMSdoc = WebServiceDocument.Factory.newInstance();
+        l_WMS = l_WMSdoc.addNewWebService();
+
+        // Create a new XMLToken Instance
+        l_ver = XmlNMTOKEN.Factory.newInstance();
+        l_ver.setStringValue("1.0");
+        l_WMS.xsetVersion(l_ver);
+
+        // add a new call
+        l_call = l_WMS.addNewCall();
+
+        // Add a new Call Action to the call
+        l_callAction = l_call.addNewCallAction();
+
+        // Add a new Transfer to the callAction
+        l_sendmessage = l_callAction.addNewSendInfo();
+        
+        l_sendmessage.setContentType(SendInfoOptions.m_contentType);
+        
+        l_sendmessage.setContent(a_message);
+        ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
+
+        try {
+            l_WMSdoc.save(l_newDialog);
+            l_rqStr = l_WMSdoc.toString();
+
+            } catch (IOException ex) {
+            logger.error(ex);
+        }
+
+       // logger.debug ("Returning Payload:\n " + l_rqStr);
+        return l_rqStr;  // Return the requested string...
+
+
+    } // end buildSendMessage
+                    
   /**
      * CLASS TYPE   :   private
      * METHOD       :   buildAttendedTransferPayload

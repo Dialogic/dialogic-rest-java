@@ -252,23 +252,7 @@ public class XMSGateway implements XMSEventCallback {
         
         public void SendDTMF(String message){
         
-            //XMSRestConnector restcon = (XMSRestConnector)myConnector;
-            SendCommandResponse resp;
-            
-            String m_rectransid="";
-            String m_recfilename="";
-
-            String urlext = "calls/" + myOutboundCall.getCallIdentifier() ;
-            String payload = "<web_service version=\"1.0\">" +
-                                "<call>" +
-                                    "<call_action>" + 
-                                        "<send_dtmf digits=\"" + message.toString() + "\" />" + 
-                                    "</call_action>" +
-                                "</call>" +
-                             "</web_service>"; 
-
-            resp=restcon.SendCommand(myOutboundCall,RESTOPERATION.PUT, urlext, payload);
-            m_rectransid=resp.get_scr_transaction_id();    
+            myOutboundCall.SendDtmf(message);
         
     }   
     
@@ -320,7 +304,7 @@ public class XMSGateway implements XMSEventCallback {
             case CALL_RECORD_END:
                 
                 break;       
-            case CALL_END_DTMF:
+            case CALL_SENDDTMF_END:
                 System.out.println("*****  END_DTMF   *****");
                 System.out.println("*****  ReJoin Calls  *****");
                 ConnectCalls();
@@ -394,9 +378,9 @@ public class XMSGateway implements XMSEventCallback {
                     
                     UnJoinCalls(); 
                     SendDTMF(evt.getData()); 
-
+                    
                     break;                    
-                case CALL_END_DTMF:
+                case CALL_SENDDTMF_END:
                     
                     System.out.println("*****  END_DTMF   *****");
                     System.out.println("*****  ReJoin Calls  *****");

@@ -24,5 +24,6 @@ public enum XMSCallState {
     UPDATECALL,
     DISCONNECTED, 
     REJECTED,
-    SENDMESSAGE
+    SENDMESSAGE,
+    SENDDTMF
 }
