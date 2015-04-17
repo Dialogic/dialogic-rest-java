@@ -1,0 +1,4 @@
+com.dialogic.XMSGatewayDemo.GatewayStates
+com.dialogic.XMSGatewayDemo.InboundCallStates
+com.dialogic.XMSGatewayDemo.XMSGateway
+com.dialogic.XMSGatewayDemo.OutboundCallStates
