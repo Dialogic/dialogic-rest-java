@@ -22,8 +22,12 @@ public class XMSMessageTest {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
         XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        XMSRestConnector restcon = (XMSRestConnector)myConnector;
         XMSCall myCall = myFactory.CreateCall(myConnector);
-         MyCallbacks myCallback = new MyCallbacks();
+        
+        
+        
+         MyCallbacks myCallback = new MyCallbacks(restcon);
         
         //Enable all events to go back to my event handler
         myCall.EnableAllEvents(myCallback);

@@ -58,6 +58,8 @@ import com.dialogic.xms.MediaDirection;
 import com.dialogic.xms.EventDocument;
 import com.dialogic.xms.EventDataDocument;
 import com.dialogic.xms.EventDataName;
+import com.dialogic.xms.MsgPayloadDocument.MsgPayload;
+import com.dialogic.xms.MsgPayloadDocument.MsgPayload.MsgPayloadContent;
 
 
 /**
@@ -1327,9 +1329,18 @@ public class XMSRestCall extends XMSCall{
                     for(EventDataDocument.EventData ed: l_datalist){                            // 30-Jul-2012 dsl
                         if (ed.getName().contentEquals(EventDataName.REASON.toString())){                              // 30-Jul-2012 dsl
                             l_callbackevt.setReason(ed.getValue());                             // 30-Jul-2012 dsl
-                        } else if (ed.getName().contentEquals(EventDataName.CONTENT.toString())){                              // 30-Jul-2012 dsl
-                            l_callbackevt.setData(ed.getValue());                             // 30-Jul-2012 dsl
-                            logger.info("setting data content to "+l_callbackevt.getData());
+                        } //else if (ed.getName().contentEquals(EventDataName.CONTENT.toString())){ 
+                        else if (ed.getName().contains("msg_payload[0].content"  )){ 
+                            if(ed.getName().contains("msg_payload[0].content_")){
+                                
+                            } else {
+                                logger.info("Found a msg_payload[0].content - " + ed.getName() );
+                                if(ed.getValue() !=null || ed.getValue().isEmpty()){// 30-Jul-2012 dsl
+                                    logger.info("setting data content to "+l_callbackevt.getData());
+                                    l_callbackevt.setData(ed.getValue());                             // 30-Jul-2012 dsl
+                                    logger.info("Data set to "+l_callbackevt.getData());
+                                }
+                            }
                         }
                         
                     }
@@ -1628,6 +1639,17 @@ public class XMSRestCall extends XMSCall{
         if(MakecallOptions.m_displayName.length()>0){
                  l_call.setDisplayName(MakecallOptions.m_displayName);
           }
+        if(MakecallOptions.m_content.length()>0){
+                 l_call.setContent(MakecallOptions.m_content);
+                 if(MakecallOptions.m_content_type.length()>0){
+                     l_call.setContentType(MakecallOptions.m_content_type);
+           } 
+        }       
+     //   if(MakecallOptions.m_headers.length()>0){
+       //          l_call.setHeaders(MakecallOptions.m_headers);        
+        
+         // }
+        
         //logger.debug("RAW REST generated...." + l_WMS.toString());
           ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
 
@@ -2304,13 +2326,26 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
 
         // Add a new Call Action to the call
         l_callAction = l_call.addNewCallAction();
-
+        
         // Add a new Transfer to the callAction
         l_sendmessage = l_callAction.addNewSendMessage();
-        
-        l_sendmessage.setContentType(SendMessageOptions.m_contentType);
+        if(SendMessageOptions.m_messageMode.equalsIgnoreCase("msrp")){
+            l_sendmessage.setMode(SendMessageDocument.SendMessage.Mode.MSRP);
+        } else if(SendMessageOptions.m_messageMode.equalsIgnoreCase("rfc5547") || SendMessageOptions.m_messageMode.equalsIgnoreCase("rfc_5547")){
+            l_sendmessage.setMode(SendMessageDocument.SendMessage.Mode.RFC_5547);
+        } else   {
+            l_sendmessage.setMode(SendMessageDocument.SendMessage.Mode.SIGNALLING);
+        }
         l_sendmessage.setReport(SendMessageDocument.SendMessage.Report.BOTH);
-        l_sendmessage.setContent(a_message);
+        
+        MsgPayload l_msgpayload=l_sendmessage.addNewMsgPayload();
+        l_msgpayload.setContentId(SendMessageOptions.m_id);
+        l_msgpayload.setContentType(SendMessageOptions.m_contentType);
+        MsgPayloadContent l_msgpayloadcontent=l_msgpayload.addNewMsgPayloadContent();
+        l_msgpayloadcontent.setContent(a_message);
+        //l_sendmessage.setContentType(SendMessageOptions.m_contentType);
+        //
+        //l_sendmessage.setContent(a_message);
         ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
 
         try {
