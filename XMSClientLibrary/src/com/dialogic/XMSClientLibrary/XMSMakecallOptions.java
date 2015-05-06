@@ -19,6 +19,8 @@ public class XMSMakecallOptions {
     String m_sourceAddress;
     String m_calledAddress;
     String m_displayName;
+    String m_content;
+    String m_content_type;
     /**
      * This will Instantiate and Reset all the values to their defaults
      */
@@ -38,7 +40,20 @@ public class XMSMakecallOptions {
         m_sourceAddress="";
         m_calledAddress="";
         m_displayName="";
+        m_content="";
+        m_content_type="";
     }
+     /**
+     * Set if content should be sent on the outbound call
+     *  
+     * @param a_type - The type of content "plain/txt"
+     * @param a_content - The coontent to send
+     */
+    public void SetContent(String a_type,String a_content){
+        m_content=a_content;
+        m_content_type=a_type;
+    }
+
     /**
      * Set if CPA should be enabled on the outbound call
      *  
@@ -129,7 +144,10 @@ public class XMSMakecallOptions {
                 " mediaType="+m_mediaType+
                 " iceEnabled="+m_iceEnabled+
                 " encryptionEnabled="+m_encryptionEnabled+
-                " signalingEnabled="+m_signalingEnabled;
+                " signalingEnabled="+m_signalingEnabled+
+                " contenttype="+m_content_type+
+                " content="+m_content;
+   
         
                 if(m_sdp != null)
                     RtnStr+=" sdp="+m_sdp;
