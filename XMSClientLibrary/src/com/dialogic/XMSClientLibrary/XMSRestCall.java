@@ -626,7 +626,15 @@ public class XMSRestCall extends XMSCall{
             //TODO: Should likely make a way to obtain the connection info 
                    
                    setConnectionAddress(RC.get_scr_source());
-         //          setCalledAddress(RestGetCalledAddress(RC.get_scr_return_xml_payload()));  
+         //          setCalledAddress(RestGetCalledAddress(RC.get_scr_return_xml_payload()));
+          if(!WaitcallOptions.m_autoConnectEnabled){ 
+                        
+                        XMSEvent l_callbackevt = new XMSEvent();
+                        //TODO: There should be the event contents in the last parm here
+                        l_callbackevt.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "", RC.toString()); 
+                        UnblockIfNeeded(l_callbackevt); 
+                    }
+         
                     return XMSReturnCode.SUCCESS;
 
         } else {
@@ -670,7 +678,7 @@ public class XMSRestCall extends XMSCall{
             setState(XMSCallState.ACCEPTED);
             //TODO: Should likely make a way to obtain the connection info 
                    
-                   //setConnectionAddress(RC.get_scr_source());
+            //      setConnectionAddress(RC.get_scr_source());
          //          setCalledAddress(RestGetCalledAddress(RC.get_scr_return_xml_payload()));  
                     return XMSReturnCode.SUCCESS;
 
@@ -1265,7 +1273,18 @@ public class XMSRestCall extends XMSCall{
                            setCalledAddress("");
                        }
                        //TODO fix this too
-                       
+                       start=l_evt.rawstring.indexOf("name=\"caller_uri\" value=\"");
+                    
+                       end=l_evt.rawstring.indexOf("/>", start);
+                       if(start > -1 && end > -1){
+                            String calling_uri = unescapeXML((String) l_evt.rawstring.subSequence(start, end));
+                            
+                            setConnectionAddress(calling_uri);   
+                       } else{
+                           logger.info("Can't detect calling_uri in inbound message, setting to empty string");
+                           //setCallType(XMSCallType.SIP);
+                           setConnectionAddress("");
+                       }
                     if(WaitcallOptions.m_autoConnectEnabled){
                         Answercall();
                         l_callbackevt.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "", l_evt.toString());
@@ -2113,7 +2132,17 @@ private String buildPlayRecordPayload(String a_playfile,String a_recfile) {
             case UNKNOWN:
                 l_call.setMedia(MediaType.UNKNOWN);
         } // end switch
+        
+             if(getCallType() == XMSCallType.WEBRTC){
+                logger.info("WebRTC call detected, setting dtmfmode = OUTOFBAND, ice=YES and encryption=dtls");
+                l_call.setIce(BooleanType.YES);
+                l_call.setEncryption(RtpEncryptionOption.DTLS);
+                l_call.setDtmfMode(DtmfModeOption.OUTOFBAND);
+            } else {
+                 l_call.setDtmfMode(DtmfModeOption.RFC_2833);
 
+             }
+             l_call.setAsyncDtmf(BooleanType.YES);
         l_call.setEarlyMedia(BooleanType.YES);
         ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
 

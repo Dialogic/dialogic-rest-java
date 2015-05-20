@@ -94,7 +94,7 @@ public class XMSGateway implements XMSEventCallback {
         SetOutboundCall(out);
            
     }
-    boolean ConnectInboundFlag=true;
+    boolean ConnectInboundFlag=false;
     /**
      * Set if the gateway should connect the inbound call prior to making the outbound call
      * If this is set to false the gateway will only accept the call and will not answer until
@@ -299,7 +299,12 @@ public class XMSGateway implements XMSEventCallback {
             case CALL_CONNECTED:
                 System.out.println("*****  Outbound call connected   *****");
                 SetOutboundCallState(OutboundCallStates.CALLCONNECTED);
+                if(myInboundCallState != InboundCallStates.CALLCONNECTED){
+                    System.out.println("*****  sending inbound answercall   *****");
+                    myInboundCall.Answercall();
+                }else{
                 ConnectCalls();
+                }
                 break;
             case CALL_RECORD_END:
                 
@@ -343,6 +348,7 @@ public class XMSGateway implements XMSEventCallback {
         
             FunctionLogger logger=new FunctionLogger("ProcessInboundEvent",this,myLogger);
             logger.args(evt);
+            System.out.println("*****  Inbound Event= " + evt.getEventType() );
             try{
             switch(evt.getEventType()){
                 case CALL_OFFERED:
@@ -350,20 +356,27 @@ public class XMSGateway implements XMSEventCallback {
                     SetGatewayState(GatewayStates.ESTABLISHING);
                     SetInboundCallState(InboundCallStates.ACCEPTCALL);
                     //Should there ba an accept Call
-
+                    myInboundCall.Acceptcall();
                     StartOutboundCall(evt.getCall().getCalledAddress(),evt.getCall().getConnectionAddress());
              
                     break;
                 case CALL_CONNECTED:
                     System.out.println("*****   Inbound CALL_Connected   *****");
                     SetInboundCallState(InboundCallStates.CALLCONNECTED);
+                    if(!ConnectInboundFlag) {
+                        ConnectCalls();
+                    } else {
                     StartOutboundCall(evt.getCall().getCalledAddress(),evt.getCall().getConnectionAddress());
                     if(PlayRingbackFlag ){
                         myInboundCall.PlayOptions.SetMediaType(XMSMediaType.VIDEO);
                         myInboundCall.Play(RingbackFile);
-                    } 
+                    }}
                     break;
-                    
+                case CALL_UPDATED:
+                    System.out.println("*****   Inbound CALL_Connected   *****");
+                    SetInboundCallState(InboundCallStates.CALLCONNECTED);
+                    ConnectCalls();
+                    break;                    
                 case CALL_INFO:
                      
                     System.out.println("*****   Inbound CALL_INFO   *****");
@@ -519,6 +532,7 @@ public class XMSGateway implements XMSEventCallback {
     }
      protected String GetOutboundCallingNameFromCallingAddress(String callingAddress){
         String name;
+        //callingAddress="rtc:scott";
                     System.out.println("*****  Get Calling Name   *****");
                     System.out.println("CallingAddress = " + callingAddress);        
           int atsign=callingAddress.indexOf("@");
