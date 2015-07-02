@@ -30,7 +30,7 @@ public class XMSConfDemoAsync implements XMSEventCallback{
             XMSCall myCall=a_event.getCall();
         switch(a_event.getEventType()){
             case CALL_CONNECTED:
-                myConf.ConferenceOptions.SetLayout(0);
+                myConf.ConferenceOptions.SetLayout(Layout.AUTO);
                 myConf.ConferenceOptions.SetMediaType(XMSMediaType.VIDEO);
                 myConf.AddOptions.SetAudioDirection(XMSMediaDirection.SENDRECV);
                 myConf.AddOptions.SetVideoDirection(XMSMediaDirection.SENDRECV);

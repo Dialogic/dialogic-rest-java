@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://www.dialogic.com/DialogicTypes"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:attribute name="conf_party_type" default="standard">
+   <xs:simpleType>
+     <xs:restriction base="xs:string">
+       <xs:enumeration value="coach" />
+       <xs:enumeration value="pupil" />
+       <xs:enumeration value="standard" />
+     </xs:restriction>
+   </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="target_display" default="standard">
+    <xs:simpleType>
+      <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="echo_cancel" default="disable">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+       <xs:enumeration value="disable" />
+       <xs:enumeration value="enable" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="mintime" default="0s">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="(\+)?([0-9]*\.)?[0-9]+(ms|s)" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:simpleType name="retry.datatype">
+    <xs:union memberTypes="xs:nonNegativeInteger">
+      <xs:simpleType>
+        <xs:restriction base="xs:negativeInteger">
+          <xs:minInclusive value="-1" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="forever" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+</xs:schema>

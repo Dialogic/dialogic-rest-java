@@ -20,7 +20,10 @@ public class XMSEchoTest {
     public static void main(String[] args) {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
-        XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        // REST
+        //XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        // MSML
+        XMSConnector myConnector = myFactory.CreateConnector("ConnectorConfig.xml");
         XMSCall myCall = myFactory.CreateCall(myConnector);
         MyCallbacks myCallback = new MyCallbacks();
         

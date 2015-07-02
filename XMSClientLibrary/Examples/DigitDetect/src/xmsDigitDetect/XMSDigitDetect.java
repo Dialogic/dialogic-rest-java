@@ -18,6 +18,7 @@ public class XMSDigitDetect {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
         XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        //XMSConnector myConnector = myFactory.CreateConnector("ConnectorConfig.xml");
         XMSCall myCall = myFactory.CreateCall(myConnector);
         
             

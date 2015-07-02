@@ -6,14 +6,19 @@ package com.dialogic.XMSClientLibrary;
 
 /**
  * This enum will contain the Call states for an XMSCall
+ *
  * @author dwolansk
  */
 public enum XMSCallState {
-    NULL,  
+
+    NULL,
     MAKECALL, //outbound calls
     ACCEPTED,
     CONNECTED, // Call is active for either Inbound or outbound
     PLAY,
+    PLAY_END,
+    RECORD_END,
+    CONF,
     PLAYCOLLECT,
     COLLECTDIGITS,
     PLAYRECORD,
@@ -22,8 +27,9 @@ public enum XMSCallState {
     WAITCALL, // Waiting for an inbound call
     OFFERED, // inbound calls
     UPDATECALL,
-    DISCONNECTED, 
+    DISCONNECTED,
     REJECTED,
     SENDMESSAGE,
-    SENDDTMF
+    SENDDTMF,
+    CUSTOM
 }

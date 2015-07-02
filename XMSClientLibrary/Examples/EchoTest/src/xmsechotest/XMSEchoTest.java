@@ -17,7 +17,10 @@ public class XMSEchoTest {
     public static void main(String[] args) {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
-        XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        // REST
+        //XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        // MSML
+        XMSConnector myConnector = myFactory.CreateConnector("ConnectorConfig.xml");
         XMSCall myCall = myFactory.CreateCall(myConnector);
         
         //Wait for an inbound call
@@ -30,7 +33,8 @@ public class XMSEchoTest {
         myCall.RecordOptions.SetMaxTime(10);
         myCall.RecordOptions.SetTerminateDigits("#");
         //Record a file
-        myCall.Record("echotest.wav");
+        //myCall.Record("echotest.wav");
+        myCall.Record("file://recorded/Test.wav");
         
         //Hangup the call
         myCall.Dropcall();
@@ -39,7 +43,7 @@ public class XMSEchoTest {
         myCall.Makecall(addr);
         
         //Playback the file recorded
-        myCall.Play("echotest.wav");
+        myCall.Play("file://recorded/Test.wav");
         
         //Hangup the call
         myCall.Dropcall();

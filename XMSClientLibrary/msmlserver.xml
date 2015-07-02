@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<MEDIA_CONTROL_CONFIG>
+
+  <XmsAppIpAddress>localhost</XmsAppIpAddress>
+  <XmsAppName>MSML</XmsAppName>
+  <XmsAppVersion>1.0</XmsAppVersion>
+  <XmsAppDescription>MSML Server</XmsAppDescription>
+
+  <TrustedAppServer>DISABLE</TrustedAppServer>
+  <Table>TrustedAppServerList
+    
+    
+    
+    <row>
+      <Param>
+        <name>IPAddress</name>
+        <ParamValue>192.219.25.106</ParamValue>
+      </Param>
+    </row>
+    <row>
+      <Param>
+        <name>IPAddress</name>
+        <ParamValue>192.168.195.204</ParamValue>
+      </Param>
+    </row>
+  </Table>
+
+  <ResourceUsage>
+    <MinCall>0</MinCall>
+    <IncCall>1</IncCall>
+    <MaxCall>-1</MaxCall>
+    <MinMedia>0</MinMedia>
+    <IncMedia>1</IncMedia>
+    <MaxMedia>-1</MaxMedia>
+    <MinConf>0</MinConf>
+    <IncConf>1</IncConf>
+    <MaxConf>-1</MaxConf>
+    <MinConfParty>0</MinConfParty>
+    <IncConfParty>1</IncConfParty>
+    <MaxConfParty>-1</MaxConfParty>
+  </ResourceUsage>
+
+
+
+  
+
+
+
+  <!-- HTTP Caching - either ENABLE or DISABLE --> 
+  <HTTPCaching>DISABLE</HTTPCaching>
+
+
+  
+
+
+
+  <!-- Schema Validation - either ENABLE or DISABLE --> 
+  <SchemaValidation>ENABLE</SchemaValidation>
+
+
+  
+
+
+
+  <!-- MSMLVersion - either 1.0 or 1.1 --> 
+  <MSMLVersion>1.1</MSMLVersion>
+
+
+  
+
+
+
+  <!-- ContentType - either xml or msml+xml --> 
+  <ContentType>xml</ContentType>
+
+
+  
+
+
+
+  <!-- Encoding - either utf_8 or us_ascii --> 
+  <Encoding>utf_8</Encoding>
+
+
+  
+
+
+
+  <!-- ClearDB - either RFC-5707, DEFAULT-TRUE, DEFAULT-FALSE, FORCE-TRUE or FORCE-FALSE --> 
+  <ClearDB>RFC-5707</ClearDB>
+
+
+  
+
+
+
+  <!-- DTMFStartTimer - either ENABLE or DISABLE --> 
+  <DTMFStartTimer>DISABLE</DTMFStartTimer>
+
+
+  
+
+
+
+  <!-- AdvDigitPattern - either ENABLE or DISABLE --> 
+  <AdvDigitPattern>DISABLE</AdvDigitPattern>
+
+
+  
+
+
+
+  <!-- ConferenceAGC - either ENABLE or DISABLE --> 
+  <ConferenceAGC>DISABLE</ConferenceAGC>
+
+
+  
+
+
+
+  <!-- MaxActiveTalkers - Set a value anywhere between 1 to 10 -->
+  <MaxActiveTalkers>1</MaxActiveTalkers>
+
+
+  
+
+
+
+  <!-- MediaMode - comma separated list of either AUDIO, VIDEO, AUDIO-VIDEO, or MESSAGE -->
+  <MediaMode>AUDIO,VIDEO</MediaMode>
+
+
+  
+
+
+
+  <!-- DtmfDetectMode - either IN-BAND, OUT-OF-BAND or RFC-2833 -->
+  <DtmfDetectMode>RFC-2833</DtmfDetectMode>
+
+
+  
+
+
+
+  <!-- Alarms - comma separated list of either RTP.TIMEOUT or RTCP.TIMEOUT -->
+  <Alarms></Alarms>
+
+
+  
+
+
+
+  <!-- NumberOfEventThreads - Set a value anywhere between 1 to 10 -->
+  <NumberOfEventThreads>8</NumberOfEventThreads>
+
+
+  
+
+
+
+  <!-- CodecMode - either ENABLE or DISABLE --> 
+  <CodecMode>DISABLE</CodecMode>
+
+
+  
+
+
+
+  <!-- Start audio receive stream before ANSWER SDP is received and handle -->
+
+
+  
+
+
+
+  <!-- audio payload type change in incoming RTP stream -->
+
+
+  
+
+
+
+  <!-- DISABLE: Do not force audio early media feature for all calls-->
+
+
+  
+
+
+
+  <!-- ENABLE : Force audio early media feature for all calls-->
+  <EarlyMediaAudio>DISABLE</EarlyMediaAudio>
+
+  
+
+  
+
+  
+
+  <HTTPConnectTimeout></HTTPConnectTimeout>
+
+  
+
+  
+
+  
+
+  <Table>TrustedAppList</Table>
+
+  <AvailableCoderList>
+    <AudioCoderList/>
+    <VideoCoderList/>
+  </AvailableCoderList>
+
+  <PreferredCoderList>
+    <AudioCoderList/>
+    <VideoCoderList/>
+  </PreferredCoderList>
+
+</MEDIA_CONTROL_CONFIG>

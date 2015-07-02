@@ -5,6 +5,9 @@
 package com.dialogic.XMSClientLibrary;
 
 
+import com.dialogic.gui.SelectorForm;
+import com.dialogic.msml.XMSMsmlCall;
+import com.dialogic.msml.XMSMsmlConnector;
 import java.io.*;
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
@@ -14,6 +17,8 @@ import java.io.*;
  */
 
 import java.lang.String;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -38,7 +43,8 @@ import org.apache.log4j.PropertyConfigurator;
 public class XMSObjectFactory {
     static private Logger logger = Logger.getLogger(XMSObjectFactory.class.getName());
     private String m_Name;
-    
+    private final Object m_synclock = new Object();
+    static SelectorForm selector;
     
     /**
      * CTor for the XMSObjectFactory
@@ -49,7 +55,35 @@ public class XMSObjectFactory {
         //logger.setLevel(Level.ALL);
         logger.info("Creating " + m_Name);   
     }
-    
+
+    /**
+     * This function is used when there is no configuration file specified. This
+     * creates an user interface to enter the configuration details used to
+     * create a connector based on the technology type
+     *
+     * @return connector
+     */
+    public XMSConnector CreateConnector() {
+        try {
+            selector = new SelectorForm();
+            synchronized (m_synclock) {
+                while (selector.isVisible()) {
+                    m_synclock.wait();
+                }
+            }
+        } catch (InterruptedException ex) {
+            logger.error(ex);
+        }
+        XMSConnector connector = CreateConnector("SelectorConfiguration.xml");
+        return connector;
+    }
+
+    public void unblock() {
+        synchronized (m_synclock) {
+            selector.setVisible(false);
+            m_synclock.notify();
+        }
+    }
     
     /**
      * This function is used to auto detect the technology type and make
@@ -109,9 +143,14 @@ public class XMSObjectFactory {
                 if(l_techtype.equals( "REST")){
                     return new XMSRestConnector(a_ConfigFileName);
                     //return new XMSRestConnector();
-                } /*else if (l_techtype.equals("MSML")){
-                    return new XMSMsmlConnector();
-                }*/
+                } else if (l_techtype.equals("MSML")){
+                    try {
+                        // this is local address and port, do we need a config file for this?
+                        return new XMSMsmlConnector(Inet4Address.getLocalHost().getHostAddress(), 5070);
+                    } catch (UnknownHostException ex) {
+                        logger.fatal(ex.getMessage(), ex);
+                    }
+                }
             }  
             
             
@@ -150,6 +189,9 @@ public class XMSObjectFactory {
         if(a_conn.getType().equals( "REST")){
             logger.info("Creating a REST Call Object via XMSRestConnector");
             XMSCall l_call = new XMSRestCall(a_conn);                
+            return l_call;
+        } else if (a_conn.getType().equals("MSML")) {
+            XMSCall l_call = new XMSMsmlCall((XMSMsmlConnector) a_conn);
             return l_call;
         }
         logger.error("Error detecting the type of the passed XMSConnector");

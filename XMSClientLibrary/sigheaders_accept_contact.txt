@@ -1,0 +1,1 @@
+Accept-Contact: *;+g.3gpp.icsi-ref="urn%3Aurn-7%3A3gpp-service.ims.icsi.oma.cpm.ft.vms.generic" 

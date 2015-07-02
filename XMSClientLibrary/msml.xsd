@@ -1,0 +1,1462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:dlgc="http://www.dialogic.com/DialogicTypes"
+   id="MSML"
+   version="2.0" 
+> 
+<xs:import  schemaLocation="msml-dialogic-datatypes.xsd" namespace="http://www.dialogic.com/DialogicTypes" />
+  <!-- BEGIN MOML-DATATYPES.XSD -->
+  <xs:simpleType name="momlID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9][a-zA-Z0-9._\-]*" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="momlEvent.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9][a-zA-Z0-9._\-#]*" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="momlNamelist.datatype">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:simpleType name="dtmfDigits.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9#*a-dA-D]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="gainAmt.datatype">
+    <xs:union memberTypes="xs:integer xs:string">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="-32" />
+          <xs:maxInclusive value="32" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="mute" />
+          <xs:enumeration value="unmute" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <xs:simpleType name="iterate.datatype">
+    <xs:union memberTypes="xs:positiveInteger">
+      <xs:simpleType>
+        <xs:restriction base="xs:negativeInteger">
+          <xs:minInclusive value="-1" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="forever" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <xs:simpleType name="momlTarget.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9][a-zA-Z0-9._\-]*" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="boolean.datatype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="true" />
+      <xs:enumeration value="false" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="duration.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(\+|\-)?([0-9]*\.)?[0-9]+(ms|s)" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="posDuration.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(\+)?([0-9]*\.)?[0-9]+(ms|s)" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="auditQueryId.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:\-_]+"/>
+      <xs:pattern value="conn:[a-zA-Z0-9.:\-_]+"/>
+      <xs:pattern value="conf:\*"/>
+      <xs:pattern value="conn:\*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="regionPosition.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9]*\.)?[0-9]+(%)?" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="auditStateList.datatype">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <!-- END MOML-DATATYPES.XSD -->
+  <!-- BEGIN MOML-CORE-MODULE.XSD -->
+  <xs:group name="momlRequest">
+    <xs:sequence>
+      <xs:group ref="executeType" minOccurs="0" />
+      <xs:group ref="sendType" minOccurs="0" />
+    </xs:sequence>
+  </xs:group>
+  <xs:element name="primitive" type="primitiveType" abstract="true" />
+  <xs:complexType name="primitiveType">
+    <xs:attribute name="id" type="momlID.datatype" />
+  </xs:complexType>
+  <xs:element name="control" abstract="true" />
+  <xs:group name="executeType">
+    <xs:choice>
+      <xs:element ref="primitive" maxOccurs="unbounded" />
+      <xs:element ref="control" maxOccurs="unbounded" />
+    </xs:choice>
+  </xs:group>
+  <xs:group name="sendType">
+    <xs:choice>
+      <!-- RESOLVES Unique Particle Attribution BY ADDING minOccurs="0" BELOW xs:choice>
+        <xs:element name="exit" type="exitType" />
+        <xs:element name="disconnect" type="exitType" />
+      </xs:choice -->
+      <xs:sequence>
+        <xs:element ref="send" minOccurs="0" maxOccurs="unbounded" />
+        <xs:choice minOccurs="0">
+          <xs:element name="exit" type="exitType" />
+          <xs:element name="disconnect" type="exitType" />
+        </xs:choice>
+      </xs:sequence>
+    </xs:choice>
+  </xs:group>
+  <xs:element name="send">
+    <xs:complexType>
+      <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+      <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+      <xs:attribute name="namelist" type="momlNamelist.datatype" />
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="exitType">
+    <xs:attribute name="namelist" type="momlNamelist.datatype" />
+  </xs:complexType>
+  <xs:element name="event">
+    <xs:complexType>
+      <xs:sequence maxOccurs="unbounded">
+        <xs:element name="name" type="xs:string" />
+        <xs:element name="value" type="xs:string" />
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="id" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- END MOML-CORE-MODULE.XSD -->
+  <!-- BEGIN MOML-GROUP-MODULE.XSD -->
+  <xs:element name="group" substitutionGroup="control">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:group ref="executeType" />
+        <xs:element name="groupexit" minOccurs="0">
+          <xs:complexType>
+            <xs:group ref="sendType" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="id" type="momlID.datatype" />
+      <xs:attribute name="topology" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <!-- NOT SUPPORTED xs:enumeration value="serial"/-->
+            <xs:enumeration value="parallel" />
+            <!-- NOT SUPPORTED xs:enumeration value="fullduplex"/-->
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <!-- END MOML-GROUP-MODULE.XSD -->
+  <!-- BEGIN MOML-BASIC-PRIMITIVES-MODULE.XSD -->
+  <xs:element name="play" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+              <xs:choice maxOccurs="unbounded">
+              <xs:element name="audio" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="uri" type="xs:anyURI" use="required" />
+                  <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" default="1"/-->
+                  <xs:attribute name="iterate" type="iterate.datatype" />
+                  <xs:attribute name="format" type="xs:string" use="optional" />
+                  <xs:attribute name="audiosamplerate" type="xs:positiveInteger" use="optional" />
+                  <xs:attribute name="audiosamplesize" type="xs:positiveInteger" use="optional" />
+                  <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="video" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="uri" type="xs:anyURI" use="required" />
+                  <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1"/-->
+                  <xs:attribute name="iterate" type="iterate.datatype" use="optional" />
+                  <xs:attribute name="format" type="xs:string" use="optional" />
+                  <!-- NOT SUPPORTED xs:attribute name="audiosamplerate" type="xs:positiveInteger" use="optional"/-->
+                  <!-- NOT SUPPORTED xs:attribute name="audiosamplesize" type="xs:positiveInteger" use="optional"/-->
+                  <!-- NOT SUPPORTED xs:attribute name="codecconfig" type="xs:string" use="optional"/-->
+                  <xs:attribute name="profile" type="xs:string" use="optional" />
+                  <xs:attribute name="level" type="xs:string" use="optional" />
+                  <xs:attribute name="imagewidth" type="xs:positiveInteger" use="optional" />
+                  <xs:attribute name="imageheight" type="xs:positiveInteger" use="optional" />
+                  <xs:attribute name="maxbitrate" type="xs:positiveInteger" use="optional" />
+                  <xs:attribute name="framerate" type="xs:positiveInteger" use="optional" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="media" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:choice maxOccurs="unbounded">
+                    <xs:element name="audio" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="uri" type="xs:anyURI" use="required" />
+                        <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" default="1"/-->
+                        <xs:attribute name="iterate" type="iterate.datatype" />
+                        <xs:attribute name="format" type="xs:string" use="optional" />
+                        <xs:attribute name="audiosamplerate" type="xs:positiveInteger" use="optional" />
+                        <xs:attribute name="audiosamplesize" type="xs:positiveInteger" use="optional" />
+                        <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="video" minOccurs="0">
+                      <xs:complexType>
+                        <xs:attribute name="uri" type="xs:anyURI" use="required" />
+                        <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1"/-->
+                        <xs:attribute name="iterate" type="iterate.datatype" use="optional" />
+                        <xs:attribute name="format" type="xs:string" use="optional" />
+                        <!-- NOT SUPPORTED xs:attribute name="audiosamplerate" type="xs:positiveInteger" use="optional"/-->
+                        <!-- NOT SUPPORTED xs:attribute name="audiosamplesize" type="xs:positiveInteger" use="optional"/-->
+                        <!-- NOT SUPPORTED xs:attribute name="codecconfig" type="xs:string" use="optional"/-->
+                        <xs:attribute name="profile" type="xs:string" use="optional" />
+                        <xs:attribute name="level" type="xs:string" use="optional" />
+                        <xs:attribute name="imagewidth" type="xs:positiveInteger" use="optional" />
+                        <xs:attribute name="imageheight" type="xs:positiveInteger" use="optional" />
+                        <xs:attribute name="maxbitrate" type="xs:positiveInteger" use="optional" />
+                        <xs:attribute name="framerate" type="xs:positiveInteger" use="optional" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+              <xs:element ref="smedia" minOccurs="0" maxOccurs="unbounded" />
+            </xs:choice>
+            <xs:choice minOccurs="0">
+              <xs:element name="playexit">
+                <xs:complexType>
+                  <xs:group ref="sendType" />
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+            <xs:sequence>
+              <xs:element name="send" minOccurs="0">
+                <xs:complexType>
+                  <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+                  <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+                  <xs:attribute name="namelist" type="momlNamelist.datatype" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:sequence>
+          <xs:attribute name="interval" type="posDuration.datatype" use="optional" />
+          <xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1" />
+          <xs:attribute name="offset" type="duration.datatype" use="optional" />
+          <xs:attribute name="initial" use="optional" default="generate">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="generate" />
+                <xs:enumeration value="suspend" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="maxtime" type="posDuration.datatype" use="optional" />
+          <xs:attribute name="skip" type="duration.datatype" use="optional" default="3s" />
+          <xs:attribute name="barge" type="boolean.datatype" use="optional" default="false" />
+          <xs:attribute name="cleardb" type="boolean.datatype" use="optional" default="false" />
+          <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="record" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+            <xs:element ref="play" minOccurs="0"/>
+            <xs:element name="recordexit" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="send" minOccurs="0">
+              <xs:complexType>
+                <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+                <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+                <xs:attribute name="namelist" type="momlNamelist.datatype" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="append" type="boolean.datatype" use="optional" default="false"/>
+          <!-- BEGIN ADDITION -->
+          <xs:attribute name="beep" type="boolean.datatype" use="optional" default="false" />
+          <!-- END ADDITION -->
+          <xs:attribute name="dest" type="xs:anyURI" use="optional" />
+          <xs:attribute name="audiodest" type="xs:anyURI" use="optional" />
+          <xs:attribute name="videodest" type="xs:anyURI" use="optional" />
+          <xs:attribute name="format" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:string" />
+            </xs:simpleType>
+          </xs:attribute>
+          <!-- NOT SUPPORTED xs:attribute name="codecconfig" use="optional"> 
+         <xs:simpleType> 
+          <xs:restriction base="xs:string"/> 
+         </xs:simpleType> 
+        </xs:attribute-->
+          <xs:attribute name="audiosamplerate" type="xs:positiveInteger" use="optional" />
+          <xs:attribute name="audiosamplesize" type="xs:positiveInteger" use="optional" />
+          <xs:attribute name="profile" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string" />
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="level" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string" />
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="imagewidth" type="xs:positiveInteger" use="optional" />
+          <xs:attribute name="imageheight" type="xs:positiveInteger" use="optional" />
+          <xs:attribute name="maxbitrate" type="xs:positiveInteger" use="optional" />
+          <xs:attribute name="framerate" type="xs:positiveInteger" use="optional" />
+          <!-- MODIFIED BELOW TO BE OPTIONAL xs:attribute name="maxtime" type="posDuration.datatype" use="required"/-->
+          <xs:attribute name="maxtime" type="posDuration.datatype" use="optional" />
+          <xs:attribute ref="dlgc:mintime" />
+          <xs:attribute name="initial" use="optional" default="create">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="create" />
+                <xs:enumeration value="suspend" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="prespeech" type="posDuration.datatype" use="optional" default="0s"/>
+          <xs:attribute name="postspeech" type="posDuration.datatype" use="optional" default="0s" />
+          <xs:attribute name="termkey" use="optional">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9#*ABCD]" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="dtmf" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+            <xs:element name="pattern" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+                <xs:attribute name="digits" type="xs:string" use="required" />
+                <xs:attribute name="format">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <!-- NOT SUPPORTED xs:enumeration value="mgcp"/-->
+                      <!-- NOT SUPPORTED xs:enumeration value="megaco"/-->
+                      <xs:enumeration value="moml+digits" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+                <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" default="1"/-->
+                <xs:attribute name="iterate" type="iterate.datatype" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="detect" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="noinput" type="iterateSendType" minOccurs="0" />
+            <xs:element name="nomatch" type="iterateSendType" minOccurs="0" />
+            <xs:element name="dtmfexit" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="send" minOccurs="0">
+              <xs:complexType>
+                <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+                <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+                <xs:attribute name="namelist" type="momlNamelist.datatype" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element ref="play" minOccurs="0"/>
+          </xs:sequence>
+          <!-- MODIFIED BELOW AS OPTIONAL xs:attribute name="cleardb" type="boolean.datatype" default="true"/-->
+          <xs:attribute name="cleardb" type="boolean.datatype" use="optional" default="true" />
+          <xs:attribute name="fdt" type="posDuration.datatype" default="0s" />
+          <!-- MODIFIED BELOW SETTING DEFAULT TO 0 xs:attribute name="idt" type="posDuration.datatype" default="4s"/-->
+          <xs:attribute name="idt" type="posDuration.datatype" default="0s" />
+          <!-- MODIFIED BELOW SETTING DEFAULT TO 0 xs:attribute name="edt" type="posDuration.datatype" default="4s"/-->
+          <xs:attribute name="edt" type="posDuration.datatype" default="0s" />
+          <xs:attribute name="starttimer" type="boolean.datatype" default="false" />
+          <xs:attribute name="iterate" type="iterate.datatype" default="1" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="collect" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+            <xs:element name="pattern" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+                <xs:attribute name="digits" type="xs:string" use="required" />
+                <xs:attribute name="format">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <!-- NOT SUPPORTED xs:enumeration value="mgcp"/-->
+                      <!-- NOT SUPPORTED xs:enumeration value="megaco"/-->
+                      <xs:enumeration value="moml+digits" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:attribute>
+                <!-- REMOVING DEFAULT VALUE BELOW xs:attribute name="iterate" type="iterate.datatype" default="1"/-->
+                <xs:attribute name="iterate" type="iterate.datatype" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="detect" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="noinput" type="iterateSendType" minOccurs="0" />
+            <xs:element name="nomatch" type="iterateSendType" minOccurs="0" />
+            <xs:element name="dtmfexit" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="send" minOccurs="0">
+              <xs:complexType>
+                <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+                <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+                <xs:attribute name="namelist" type="momlNamelist.datatype" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element ref="play" minOccurs="0"/>
+          </xs:sequence>
+          <!-- MODIFIED BELOW AS OPTIONAL xs:attribute name="cleardb" type="boolean.datatype" default="true"/-->
+          <xs:attribute name="cleardb" type="boolean.datatype" use="optional" default="true" />
+          <xs:attribute name="fdt" type="posDuration.datatype" default="0s" />
+          <!-- MODIFIED BELOW SETTING DEFAULT TO 0 xs:attribute name="idt" type="posDuration.datatype" default="4s"/-->
+          <xs:attribute name="idt" type="posDuration.datatype" default="0s" />
+          <!-- MODIFIED BELOW SETTING DEFAULT TO 0 xs:attribute name="edt" type="posDuration.datatype" default="4s"/-->
+          <xs:attribute name="edt" type="posDuration.datatype" default="0s" />
+          <xs:attribute name="starttimer" type="boolean.datatype" default="false" />
+          <xs:attribute name="iterate" type="iterate.datatype" default="1" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="dtmfgen" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+            <xs:element name="dtmfgenexit" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="send" minOccurs="0">
+              <xs:complexType>
+                <xs:attribute name="event" type="momlEvent.datatype" use="required" />
+                <xs:attribute name="target" type="momlTarget.datatype" use="required" />
+                <xs:attribute name="namelist" type="momlNamelist.datatype" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="level" use="optional" default="-6">
+            <xs:simpleType>
+              <xs:restriction base="xs:nonPositiveInteger">
+                <xs:maxInclusive value="0" />
+                <xs:minInclusive value="-96" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="digits" type="dtmfDigits.datatype" use="required" />
+          <xs:attribute name="dur" type="posDuration.datatype" use="optional" default="100ms" />
+          <xs:attribute name="interval" type="posDuration.datatype" use="optional" default="100ms" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="iterateSendType">
+    <xs:group ref="sendType" />
+    <xs:attribute name="iterate" type="iterate.datatype" default="1" />
+  </xs:complexType>
+  <xs:element name="smedia" type="smediaType" abstract="true" />
+  <xs:complexType name="smediaType">
+    <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+    <xs:attribute name="iterate" type="iterate.datatype" />
+  </xs:complexType>
+  <xs:element name="var" substitutionGroup="smedia">
+   <xs:complexType>
+    <xs:complexContent>
+     <xs:extension base="smediaType">
+      <xs:attribute name="type" use="required">
+       <xs:simpleType>
+        <xs:restriction base="xs:string">
+         <xs:enumeration value="date"/>
+         <xs:enumeration value="digits"/>
+         <xs:enumeration value="duration"/>
+         <xs:enumeration value="month"/>
+         <xs:enumeration value="money"/>
+         <xs:enumeration value="number"/>
+         <xs:enumeration value="silence"/>
+         <!-- BEGIN ADDITION -->
+         <xs:enumeration value="string"/>
+         <!-- END ADDITION -->
+         <xs:enumeration value="time"/>
+         <xs:enumeration value="weekday"/>
+        </xs:restriction>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="subtype" type="xs:string" use="optional"/>
+      <xs:attribute name="value" type="xs:string" use="required"/>
+      <!-- BEGIN ADDITION -->
+      <xs:attribute name="voice" type="xs:string" use="optional"/>
+      <!-- END ADDITION -->
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:element>
+  <!-- END MOML-BASIC-PRIMITIVES-MODULE.XSD -->
+  <!-- BEGIN MOML-TRANSFORM-PRIMITIVES-MODULE.XSD -->
+  <!-- NOT SUPPORTED xs:element name="vad" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:complexContent> 
+      <xs:extension base="primitiveType"> 
+      <xs:all> 
+       <xs:element name="voice" type="vadPatternType" minOccurs="0"/> 
+       <xs:element name="silence" type="vadPatternType" minOccurs="0"/> 
+       <xs:element name="tvoice" type="vadPatternType" minOccurs="0"/> 
+       <xs:element name="tsilence" type="vadPatternType" minOccurs="0"/> 
+      </xs:all> 
+      <xs:attribute name="starttimer" type="boolean.datatype" default="false"/> 
+      </xs:extension> 
+      </xs:complexContent> 
+     </xs:complexType> 
+    </xs:element-->
+  <xs:element name="gain" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:attribute name="incr" default="3">
+            <xs:simpleType>
+              <xs:restriction base="xs:positiveInteger">
+                <xs:maxInclusive value="96" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="amt" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="-96" />
+                <xs:maxInclusive value="96" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="agc" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:attribute name="tgtlvl" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:nonPositiveInteger">
+                <xs:minInclusive value="-40" />
+                <xs:maxInclusive value="0" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="maxgain" default="10">
+            <xs:simpleType>
+              <xs:restriction base="xs:nonNegativeInteger">
+                <xs:minInclusive value="0" />
+                <xs:maxInclusive value="40" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <!-- NOT SUPPORTED xs:element name="gate" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:complexContent> 
+      <xs:extension base="primitiveType"> 
+      <xs:attribute name="initial" default="pass"> 
+       <xs:simpleType> 
+        <xs:restriction base="xs:string"> 
+         <xs:enumeration value="pass"/> 
+         <xs:enumeration value="halt"/> 
+        </xs:restriction> 
+       </xs:simpleType> 
+      </xs:attribute> 
+      </xs:extension> 
+      </xs:complexContent> 
+     </xs:complexType> 
+    </xs:element-->
+  <!-- NOT SUPPORTED xs:element name="clamp" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:complexContent> 
+       <xs:extension base="primitiveType"/> 
+      </xs:complexContent> 
+     </xs:complexType> 
+    </xs:element-->
+  <!-- NOT SUPPORTED xs:element name="relay" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:complexContent> 
+       <xs:extension base="primitiveType"/> 
+      </xs:complexContent> 
+     </xs:complexType> 
+    </xs:element-->
+  <!-- NOT SUPPORTED xs:complexType name="vadPatternType"> 
+     <xs:group ref="sendType"/> 
+     <xs:attribute name="iterate" type="iterate.datatype" default="1"/> 
+     <xs:attribute name="len" type="posDuration.datatype" use="required"/> 
+     <xs:attribute name="sen" type="posDuration.datatype" use="optional"/> 
+    </xs:complexType-->
+  <!-- END MOML-TRANSFORM-PRIMITIVES-MODULE.XSD -->
+  <!-- BEGIN MOML-SPEECH-MODULE.XSD -->
+  <!-- NOT SUPPORTED 
+    <xs:include schemaLocation="http://www.w3.org/TR/2002/WD-speech- 
+                synthesis-20020405/synthesis-core.xsd"/> 
+    <xs:include schemaLocation="http://www.w3.org/TR/speech- 
+                grammar/grammar-core.xsd"/> 
+    <xs:element name="speech" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:complexContent> 
+       <xs:extension base="primitiveType"> 
+        <xs:sequence> 
+         <xs:element name="grammar" maxOccurs="unbounded"> 
+          <xs:complexType> 
+           <xs:complexContent> 
+            <xs:extension base="grammar"> 
+             <xs:choice> 
+              <xs:element name="match" type="iterateSendType" minOccurs="0"/> 
+             </xs:choice> 
+             <xs:attribute name="uri" type="xs:anyURI"/> 
+             <xs:attribute name="iterate" type="iterate.datatype" default="1"/> 
+            </xs:extension> 
+           </xs:complexContent> 
+          </xs:complexType> 
+         </xs:element> 
+         <xs:element name="noinput" type="iterateSendType" minOccurs="0"/> 
+         <xs:element name="nomatch" type="iterateSendType" minOccurs="0"/> 
+         <xs:element name="speechexit" minOccurs="0"> 
+          <xs:complexType> 
+           <xs:group ref="sendType"/> 
+          </xs:complexType> 
+         </xs:element> 
+        </xs:sequence> 
+        <xs:attribute name="noint" type="posDuration.datatype"/> 
+        <xs:attribute name="norect" type="posDuration.datatype"/> 
+        <xs:attribute name="spcmplt" type="posDuration.datatype"/> 
+        <xs:attribute name="confidence"> 
+         <xs:simpleType> 
+          <xs:restriction base="xs:positiveInteger"> 
+           <xs:maxInclusive value="100"/> 
+          </xs:restriction> 
+         </xs:simpleType> 
+        </xs:attribute> 
+        <xs:attribute name="sens" type="xs:positiveInteger"/> 
+        <xs:attribute name="starttimer" type="boolean.datatype" default="false"/> 
+        <xs:attribute name="iterate" type="iterate.datatype" default="1"/> 
+       </xs:extension> 
+      </xs:complexContent> 
+     </xs:complexType> 
+    </xs:element> 
+    <xs:element name="tts" type="smediaType" substitutionGroup="smedia"/> 
+-->
+  <!-- END MOML-SPEECH-MODULE.XSD -->
+  <!-- BEGIN MOML-TRANSFER-MODULE.XSD -->
+  <xs:element name="fileop" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:attribute name="operation" use="required">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="copy" />
+                <xs:enumeration value="move" />
+                <xs:enumeration value="append" />
+                <xs:enumeration value="delete" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="src" type="xs:anyURI"  use="required" />
+          <xs:attribute name="dest" type="xs:anyURI" use="optional" />
+          <xs:attribute name="overwrite" type="boolean.datatype" use="optional" default="true"/>
+          <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="transfer" substitutionGroup="primitive">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="primitiveType">
+          <xs:sequence>
+            <xs:choice maxOccurs="unbounded">
+              <xs:element name="fileobj" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="objid" type="momlID.datatype" use="optional" />
+                  <xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1" />
+                  <xs:attribute name="retry" type="dlgc:retry.datatype" use="optional" default="0" />
+                  <xs:attribute name="src" type="xs:anyURI" use="required" />
+                  <xs:attribute name="dest" type="xs:anyURI" use="optional" />
+                  <xs:attribute name="wait" type="boolean.datatype" use="optional" default="false" />
+                  <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+                  <xs:attribute name="contenttype" type="xs:string" use="optional" />
+                  <xs:attribute name="delete" type="boolean.datatype" use="optional" default="false" />
+                  <xs:attribute name="overwrite" type="boolean.datatype" use="optional" default="true" />
+                  <xs:attribute name="append" type="boolean.datatype" use="optional" default="false" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="messageobj" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:choice maxOccurs="unbounded">
+                    <xs:element name="content" minOccurs="0" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute name="contentid" type="xs:string" use="optional" />
+                            <xs:attribute name="contenttype" type="xs:string" use="optional" default="text/plain" />
+                            <xs:attribute name="contentdisposition" type="xs:string" use="optional" />
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:choice>
+                  <xs:attribute name="objid" type="momlID.datatype" />
+                  <xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1" />
+                  <xs:attribute name="retry" type="dlgc:retry.datatype" use="optional" default="0" />
+                  <xs:attribute name="src" type="xs:anyURI" use="required" />
+                  <xs:attribute name="dest" type="xs:anyURI" use="optional" />
+                  <xs:attribute name="wait" type="boolean.datatype" use="optional" default="false"/>
+                  <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+                  <xs:attribute name="contenttype" type="xs:string" use="optional" />
+                </xs:complexType>
+              </xs:element>
+            </xs:choice>
+            <xs:element name="transferstart" minOccurs="0" />
+            <xs:element name="transferobjstart" minOccurs="0" />
+            <xs:element name="transferobjdone" minOccurs="0" >
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="transferexit" minOccurs="0">
+              <xs:complexType>
+                <xs:group ref="sendType" />
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+          <xs:attribute name="initial" use="optional" default="transmit">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="transmit" />
+                <xs:enumeration value="suspend" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="iterate" type="iterate.datatype" use="optional" default="1" />
+          <xs:attribute name="retry" type="dlgc:retry.datatype" use="optional" default="0" />
+          <xs:attribute name="starttimer" type="boolean.datatype" default="false" />
+          <xs:attribute name="ftt" type="posDuration.datatype" use="optional" />
+          <xs:attribute name="itt" type="posDuration.datatype" use="optional" />
+          <xs:attribute name="maxtime" type="posDuration.datatype" use="optional" />
+          <!-- NOT SUPPORTED xs:attribute ref="xml:lang"/-->
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <!-- END MOML-TRANSFER-MODULE.XSD -->
+  <!-- BEGIN MOML-FAX-MODULE.XSD -->
+    <xs:element name="faxdetect" substitutionGroup="primitive">
+     <xs:complexType>
+      <xs:complexContent>
+       <xs:extension base="primitiveType">
+        <xs:choice minOccurs="0">
+         <xs:element name="faxdetectexit">
+          <xs:complexType>
+           <xs:group ref="sendType"/>
+          </xs:complexType>
+         </xs:element>
+        </xs:choice>
+       </xs:extension>
+      </xs:complexContent>
+     </xs:complexType>
+    </xs:element>
+  <!-- NOT SUPPORTED 
+    <xs:element name="faxsend" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:sequence> 
+       <xs:element name="sendobj" type="sendobjType" minOccurs="0" maxOccurs="unbounded"/> 
+       <xs:element name="hdrfooter" type="hdrfooterType" minOccurs="0"/> 
+       <xs:element name="rxpoll" minOccurs="0"> 
+        <xs:complexType> 
+         <xs:sequence> 
+          <xs:element name="rcvobj" type="rcvobjType" maxOccurs="unbounded"/> 
+          <xs:element name="hdrfooter" type="hdrfooterType" minOccurs="0"/> 
+         </xs:sequence> 
+         <xs:attribute name="rmtid" type="faxid.datatype" use="required"/> 
+        </xs:complexType> 
+       </xs:element> 
+       <xs:group ref="faxstatusrequest"/> 
+      </xs:sequence> 
+      <xs:attribute name="lclid" type="faxid.datatype" use="optional"/> 
+      <xs:attribute name="minspeed" type="faxspeed.datatype" use="optional"/> 
+      <xs:attribute name="maxspeed" type="faxspeed.datatype" use="optional"/> 
+      <xs:attribute name="ecm" type="boolean.datatype" use="optional"/> 
+     </xs:complexType> 
+    </xs:element> 
+    <xs:element name="faxrecv" substitutionGroup="primitive"> 
+     <xs:complexType> 
+      <xs:sequence> 
+       <xs:element name="rcvobj" type="rcvobjType" minOccurs="0" maxOccurs="unbounded"/> 
+       <xs:element name="hdrfooter" type="hdrfooterType" minOccurs="0"/> 
+       <xs:element name="txpoll" minOccurs="0"> 
+        <xs:complexType> 
+         <xs:sequence> 
+          <xs:element name="sendobj" type="sendobjType" maxOccurs="unbounded"/> 
+          <xs:element name="hdrfooter" type="hdrfooterType" minOccurs="0"/> 
+         </xs:sequence> 
+         <xs:attribute name="rmtid" type="faxid.datatype"/> 
+        </xs:complexType> 
+       </xs:element> 
+       <xs:group ref="faxstatusrequest"/> 
+      </xs:sequence> 
+      <xs:attribute name="lclid" type="faxid.datatype" use="optional"/> 
+      <xs:attribute name="ecm" type="boolean.datatype" default="true"/> 
+     </xs:complexType> 
+    </xs:element> 
+    <xs:group name="faxstatusrequest"> 
+     <xs:all> 
+      <xs:element name="faxstart" minOccurs="0"/> 
+      <xs:element name="faxnegotiate" minOccurs="0"/> 
+      <xs:element name="faxpagedone" minOccurs="0"/> 
+      <xs:element name="faxobjectdone" minOccurs="0"/> 
+      <xs:element name="faxopcomplete" minOccurs="0"/> 
+      <xs:element name="faxpollstart" minOccurs="0"/> 
+     </xs:all> 
+    </xs:group> 
+    <xs:complexType name="hdrfooterType"> 
+     <xs:choice> 
+      <xs:element name="format" type="xs:string" minOccurs="0" maxOccurs="unbounded"/> 
+     </xs:choice> 
+     <xs:attribute name="type" type="hdrfooter.datatype"/> 
+     <xs:attribute name="style" type="hdrfooterstyle.datatype"/> 
+    </xs:complexType> 
+    <xs:complexType name="formatType"> 
+     <xs:simpleContent> 
+      <xs:extension base="xs:string"> 
+       <xs:attribute name="style"> 
+        <xs:simpleType> 
+         <xs:restriction base="xs:string"> 
+          <xs:enumeration value="append"/> 
+          <xs:enumeration value="overlay"/> 
+          <xs:enumeration value="replace"/> 
+         </xs:restriction> 
+        </xs:simpleType> 
+       </xs:attribute> 
+      </xs:extension> 
+     </xs:simpleContent> 
+    </xs:complexType> 
+    <xs:complexType name="rcvobjType"> 
+     <xs:attribute name="objuri" type="xs:anyURI" use="required"/> 
+     <xs:attribute name="maxpages" type="xs:positiveInteger"/> 
+    </xs:complexType> 
+    <xs:complexType name="sendobjType"> 
+     <xs:attribute name="objuri" type="xs:anyURI" use="required"/> 
+     <xs:attribute name="startpage" type="xs:positiveInteger"/> 
+     <xs:attribute name="pagecount" type="xs:positiveInteger"/> 
+    </xs:complexType> 
+    <xs:simpleType name="faxid.datatype"> 
+     <xs:restriction base="xs:string"> 
+      <xs:pattern value="[0-9+*- ]{20}"/> 
+     </xs:restriction> 
+    </xs:simpleType> 
+    <xs:simpleType name="faxspeed.datatype"> 
+     <xs:restriction base="xs:string"> 
+      <xs:enumeration value="2400"/> 
+      <xs:enumeration value="4800"/> 
+      <xs:enumeration value="7200"/> 
+      <xs:enumeration value="9600"/> 
+      <xs:enumeration value="12000"/> 
+      <xs:enumeration value="14400"/> 
+     </xs:restriction> 
+    </xs:simpleType> 
+    <xs:simpleType name="hdrfooter.datatype"> 
+     <xs:restriction base="xs:string"> 
+      <xs:enumeration value="header"/> 
+      <xs:enumeration value="footer"/> 
+      <xs:enumeration value="autohdr"/> 
+      <xs:enumeration value="nohdr"/> 
+     </xs:restriction> 
+    </xs:simpleType> 
+    <xs:simpleType name="hdrfooterstyle.datatype"> 
+     <xs:restriction base="xs:string"> 
+      <xs:enumeration value="append"/> 
+      <xs:enumeration value="overlay"/> 
+      <xs:enumeration value="replace"/> 
+     </xs:restriction> 
+    </xs:simpleType> 
+-->
+  <!-- END MOML-FAX-MODULE.XSD -->
+  <!-- BEGIN MOML.XSD -->
+  <xs:element name="moml">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:group ref="momlRequest" />
+        <xs:element ref="event" />
+      </xs:choice>
+      <xs:attribute name="version" type="xs:string" use="required" fixed="1.0" />
+      <xs:attribute name="id" type="momlID.datatype" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <!-- END MOML.XSD -->
+  <!-- BEGIN MSML-DATATYPES.XSD -->
+  <xs:simpleType name="conferenceType.datatype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="audio.basic" />
+      <xs:enumeration value="audio.advanced" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="msmlInstanceID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="connID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conn:[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="confID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="operatorID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:\-_]+" />
+      <xs:pattern value="conn:[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="dialogID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:\-_]+/dialog:[a-zA-Z0-9.:\-_]+" />
+      <xs:pattern value="conn:[a-zA-Z0-9.:\-_]+/dialog:[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="independentID.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:\-_]+" />
+      <xs:pattern value="conn:[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="duplex.datatype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="half" />
+      <xs:enumeration value="full" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="confclass.datatype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="standard" />
+      <xs:enumeration value="preferred" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="dialogLanguage.datatype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="application/moml+xml" />
+      <!-- NOT SUPPORTED xs:enumeration value="application/voicexml+xml"/-->
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="msmlEvent.datatype">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:simpleType name="msmlEventName.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="msml.dialog.exit" />
+      <xs:pattern value="msml.conf.asn" />
+      <xs:pattern value="msml.conf.nomedia" />
+      <xs:pattern value="msml.dialog.exit" />
+      <!-- BEGIN ADDITION -->
+      <xs:pattern value="alarm" />
+      <xs:pattern value="cpa" />
+      <!-- END ADDITION -->
+      <xs:pattern value="[a-zA-Z0-9.:_\-]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="msmlTarget.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:_\-]+(/oper:[a-zA-Z0-9.:_\-]+|\*)*" />
+      <xs:pattern value="conn:[a-zA-Z0-9.:_\-]+(/oper:[a-zA-Z0-9.:_\-]+|\*)+" />
+      <xs:pattern value="[a-zA-Z0-9][a-zA-Z0-9._\-]*" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="msmlEventSource.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="conf:[a-zA-Z0-9.:_\-]+" />
+      <xs:pattern value="(conf:[a-zA-Z0-9.:_\-]+|conn:[a-zA-Z0-9.:_\-]+)/dialog:[a-zA-Z0-9.:_\-]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="msmlEventNameValue.datatype">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
+  <xs:simpleType name="mark.datatype">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9.:\-_]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- END MSML-DATATYPES.XSD -->
+  <!-- BEGIN MSML.XSD -->
+  <xs:element name="msml">
+    <xs:complexType>
+      <xs:choice>
+        <xs:group ref="msmlRequest" maxOccurs="unbounded" />
+        <xs:element name="event">
+          <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+              <xs:sequence>
+                <xs:element name="name" type="msmlEventNameValue.datatype" />
+                <xs:element name="value">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:pattern value="[a-zA-Z0-9.]+" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:choice>
+            <xs:attribute name="name" type="msmlEventName.datatype" use="required" />
+            <xs:attribute name="id" type="msmlEventSource.datatype" use="required" />
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="result">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="description" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[a-zA-Z0-9.\-_]+" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="confid" type="confID.datatype" />
+                <xs:element name="dialogid" type="dialogID.datatype" />
+              </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="response">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:pattern value="\d{3}" />
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="mark" type="mark.datatype" />
+          </xs:complexType>
+        </xs:element>
+       </xs:choice>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="1.1" />
+            <xs:enumeration value="1.0" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <!-- xs:attribute name="version" type="xs:string" use="required"-->
+    </xs:complexType>
+  </xs:element>
+  <xs:group name="msmlRequest">
+    <xs:choice>
+      <xs:element name="createconference">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="audiomix" type="audioMixType" minOccurs="0"/>
+            <xs:element name="videolayout" type="videoLayoutType" minOccurs="0"/>
+            <!--xs:element name="reserve">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="resource" maxOccurs="unbounded">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+                      </xs:sequence>
+                      <xs:attribute name="n" type="xs:positiveInteger" default="1"/>
+                      <xs:anyAttribute namespace="##any"/>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:sequence>
+                <xs:attribute name="required" type="boolean.datatype" default="true"/>
+              </xs:complexType>
+            </xs:element-->
+          </xs:all>
+          <xs:attribute name="name" type="msmlInstanceID.datatype" />
+          <xs:attribute name="deletewhen" default="never">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="nomedia" />
+                <xs:enumeration value="nocontrol" />
+                <xs:enumeration value="never" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="term" type="boolean.datatype" default="true" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="modifyconference">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="audiomix" type="audioMixType" minOccurs="0" />
+            <xs:element name="videolayout" type="videoLayoutType" minOccurs="0"/>
+          </xs:all>
+          <xs:attribute name="id" type="msmlInstanceID.datatype" use="required" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="destroyconference">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="audiomix" type="basicAudioMixType" minOccurs="0" />
+            <xs:element name="videolayout" type="basicVideoLayoutType" minOccurs="0"/>
+          </xs:all>
+          <xs:attribute name="id" type="msmlInstanceID.datatype" use="required" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="dialogstart">
+        <xs:complexType>
+          <xs:choice>
+            <xs:group ref="momlRequest" minOccurs="0" maxOccurs="unbounded" />
+          </xs:choice>
+          <xs:attribute name="target" type="independentID.datatype" use="required" />
+          <xs:attribute name="type" type="dialogLanguage.datatype" use="required" />
+          <xs:attribute name="name" type="msmlInstanceID.datatype" />
+          <xs:attribute name="src" type="xs:anyURI" use="optional" />
+          <xs:attribute ref="mark" />
+          <xs:attribute ref="dlgc:target_display" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="dialogend">
+        <xs:complexType>
+          <xs:attribute name="id" type="dialogID.datatype" use="required" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="join">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="stream" type="streamType" minOccurs="0" maxOccurs="4" />
+          </xs:sequence>
+          <xs:attribute name="id1" type="independentID.datatype" use="required" />
+          <xs:attribute name="id2" type="independentID.datatype" use="required" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="modifystream">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="stream" type="streamType" maxOccurs="4" />
+          </xs:sequence>
+          <xs:attribute name="id1" type="independentID.datatype" use="required" />
+          <xs:attribute name="id2" type="independentID.datatype" use="required" />
+          <xs:attribute name="mark" type="mark.datatype" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="unjoin">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="stream" type="basicStreamType" minOccurs="0" maxOccurs="4" />
+          </xs:sequence>
+          <xs:attribute name="id1" type="independentID.datatype" use="required" />
+          <xs:attribute name="id2" type="independentID.datatype" use="required" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <!-- NOT SUPPORTED xs:element name="monitor">
+       <xs:complexType>
+        <xs:attribute name="id1" type="connID.datatype" use="required"/>
+        <xs:attribute name="id2" type="independentID.datatype" use="required"/>
+        <xs:attribute name="compressed" type="boolean.datatype" default="false"/>
+        <xs:attribute ref="mark"/>
+       </xs:complexType>
+      </xs:element-->
+      <xs:element name="send">
+        <xs:complexType>
+          <xs:attribute name="event" type="msmlEvent.datatype" use="required" />
+          <xs:attribute name="target" type="msmlTarget.datatype" use="required" />
+          <xs:attribute name="valuelist" type="xs:string" />
+          <xs:attribute ref="mark" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="audit">
+        <xs:complexType>
+          <xs:attribute name="queryid" type="auditQueryId.datatype" use="required"/>
+          <xs:attribute name="statelist" type="auditStateList.datatype" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:group>
+  <xs:complexType name="basicStreamType">
+    <xs:attribute name="dir">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="to-id1" />
+          <xs:enumeration value="from-id1" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="media">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="audio" />
+          <xs:enumeration value="video" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="streamType">
+    <xs:complexContent>
+      <xs:extension base="basicStreamType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="gain">
+            <xs:complexType>
+               <xs:attribute name="amt" type="gainAmt.datatype" use="optional" />
+               <xs:attribute name="agc" type="boolean.datatype" />
+              <!-- NOT SUPPORTED xs:attribute name="tgtlvl" use="optional">
+           <xs:simpleType>
+            <xs:restriction base="xs:nonPositiveInteger">
+             <xs:minInclusive value="-40"/>
+             <xs:maxInclusive value="0"/>
+            </xs:restriction>
+           </xs:simpleType>
+          </xs:attribute-->
+              <!-- NOT SUPPORTED xs:attribute name="maxgain" default="10">
+           <xs:simpleType>
+            <xs:restriction base="xs:nonNegativeInteger">
+             <xs:minInclusive value="0"/>
+             <xs:maxInclusive value="40"/>
+            </xs:restriction>
+           </xs:simpleType>
+          </xs:attribute-->
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="clamp">
+            <xs:complexType>
+              <xs:attribute name="dtmf" type="boolean.datatype" />
+              <!--FORCING VALUE TO FALSE xs:attribute name="tone" type="boolean.datatype"/-->
+              <xs:attribute name="tone" type="boolean.datatype" fixed="false" />
+            </xs:complexType>
+          </xs:element>
+          <!-- NOT SUPPORTED xs:element name="visual"/-->
+        </xs:choice>        
+        <xs:attribute name="preferred" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="true" />
+            <xs:enumeration value="false" />
+            <xs:enumeration value="true_enhanced" />
+          </xs:restriction>
+        </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute ref="dlgc:conf_party_type" />
+        <xs:attribute ref="dlgc:echo_cancel" />
+        <!--xs:attribute name="dlgc:conf_party_type" type="xs:string" default="standard" use="optional">-->          
+        <xs:attribute name="display" type="xs:string"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="basicAudioMixType">
+    <!-- MODIFIED BELOW TO BE OPTIONAL xs:attribute name="id" type="xs:string" use="required"/-->
+    <xs:attribute name="id" type="xs:string" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="audioMixType">
+    <xs:complexContent>
+      <xs:extension base="basicAudioMixType">
+        <xs:all>
+          <xs:element name="asn" minOccurs="0">
+            <xs:complexType>
+              <!-- MAKING ATTRIBUTE MANDATORY xs:attribute name="ri" type="posDuration.datatype"/-->
+              <xs:attribute name="ri" type="posDuration.datatype" use="required" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="n-loudest" minOccurs="0">
+            <xs:complexType>
+              <xs:attribute name="n" use="required" >
+                <xs:simpleType>
+                  <xs:restriction base="xs:positiveInteger">
+                    <xs:minInclusive value="2" />
+                    <xs:maxInclusive value="10" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:attribute>
+            </xs:complexType>
+         </xs:element>
+        </xs:all>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="basicVideoLayoutType">
+  <xs:attribute name="id" type="xs:string" use="optional"/>
+  <xs:attribute name="type" type="xs:string" use="optional"
+                fixed="text/msml-basic-layout"/>
+  </xs:complexType>
+  <xs:complexType name="videoLayoutType">
+  <xs:complexContent>
+   <xs:extension base="basicVideoLayoutType">
+    <!--xs:choice-->
+    <xs:sequence>
+     <xs:element name="root" type="rootType" minOccurs="0"/>
+     <xs:element name="selector" minOccurs="0">
+      <xs:complexType>
+       <xs:complexContent>
+        <xs:extension base="selectorType">
+         <xs:choice>
+          <xs:element name="root" type="rootType" minOccurs="0"/>
+          <xs:element name="region" minOccurs="0">
+           <xs:complexType>
+            <xs:attribute name="id" type="xs:string" use="required"/>
+            <xs:attribute name="left" type="regionPosition.datatype"/>
+            <xs:attribute name="top" type="regionPosition.datatype"/>
+            <xs:attribute name="relativesize">
+             <xs:simpleType>
+              <xs:restriction base="xs:string">
+               <xs:enumeration value="1/4"/>
+               <xs:enumeration value="1/3"/>
+               <xs:enumeration value="1/2"/>
+               <xs:enumeration value="2/3"/>
+               <xs:enumeration value="3/4"/>
+               <xs:enumeration value="1"/>
+              </xs:restriction>
+             </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="priority">
+             <xs:simpleType>
+              <xs:restriction base="xs:float">
+               <xs:minInclusive value="0"/>
+               <xs:maxExclusive value="1"/>
+              </xs:restriction>
+             </xs:simpleType>
+            </xs:attribute>
+           </xs:complexType>
+          </xs:element>
+         </xs:choice>
+        </xs:extension>
+       </xs:complexContent>
+      </xs:complexType>
+     </xs:element>
+     <xs:element name="region" minOccurs="0" maxOccurs="unbounded">
+      <xs:complexType>
+       <xs:complexContent>
+        <xs:extension base="regionType"/>
+       </xs:complexContent>
+      </xs:complexType>
+     </xs:element>
+    <!--/xs:choice-->
+    </xs:sequence>
+   </xs:extension>
+  </xs:complexContent>
+ </xs:complexType>
+  <xs:complexType name="regionType">
+     <xs:attribute name="id" type="xs:string" use="required"/>
+     <xs:attribute name="left" type="regionPosition.datatype"/>
+     <xs:attribute name="top" type="regionPosition.datatype"/>
+     <xs:attribute name="relativesize">
+      <xs:simpleType>
+       <xs:restriction base="xs:string">
+        <xs:enumeration value="1/4"/>
+        <xs:enumeration value="1/3"/>
+        <xs:enumeration value="1/2"/>
+        <xs:enumeration value="2/3"/>
+        <xs:enumeration value="3/4"/>
+        <xs:enumeration value="1"/>
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute>
+     <xs:attribute name="priority">
+      <xs:simpleType>
+       <xs:restriction base="xs:float">
+        <xs:minInclusive value="0"/>
+        <xs:maxExclusive value="1"/>
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute>
+    </xs:complexType>
+  <xs:complexType name="selectorType">
+     <xs:attribute name="id" type="xs:string" use="required"/>
+     <xs:attribute name="method" use="required">
+      <xs:simpleType>
+       <xs:restriction base="xs:string">
+        <xs:enumeration value="vas"/>
+        <!--xs:enumeration value="sequence"/-->
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute>
+     <!--xs:attribute name="status" default="active">
+      <xs:simpleType>
+       <xs:restriction base="xs:string">
+        <xs:enumeration value="active"/>
+        <xs:enumeration value="disabled"/>
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute-->
+     <!--xs:attribute name="si" type="posDuration.datatype" default="1s"/-->
+     <!--xs:attribute name="blankothers" type="xs:boolean" default="false"/-->
+     <!--xs:attribute name="speakersees" default="current">
+      <xs:simpleType>
+       <xs:restriction base="xs:string">
+        <xs:enumeration value="current"/>
+        <xs:enumeration value="previous"/>
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute-->
+    </xs:complexType>
+  <xs:complexType name="rootType">
+     <xs:attribute name="size" default="CIF">
+      <xs:simpleType>
+       <xs:restriction base="xs:string">
+        <xs:enumeration value="720p"/>
+        <xs:enumeration value="VGA"/>
+        <xs:enumeration value="16CIF"/>
+        <xs:enumeration value="4CIF"/>
+        <xs:enumeration value="CIF"/>
+        <xs:enumeration value="QCIF"/>
+       </xs:restriction>
+      </xs:simpleType>
+     </xs:attribute>
+     <!--xs:attribute name="backgroundcolor" type="xs:string" default="black"/-->
+     <!--xs:attribute name="backgroundimage" type="xs:anyURI"/-->
+    </xs:complexType>
+  <xs:attribute name="mark" type="mark.datatype" />
+  <!-- END MSML.XSD -->
+</xs:schema>

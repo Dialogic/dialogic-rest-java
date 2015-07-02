@@ -15,13 +15,18 @@ import java.util.Properties;
  */
 public class XMSOutboundPlay {
 
+    //String makecalldest = "toto@10.20.120.24:5060";
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
-        XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        // REST
+        //XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        //MSML changed the config file
+        XMSConnector myConnector = myFactory.CreateConnector("ConnectorConfig.xml");
         XMSCall myCall = myFactory.CreateCall(myConnector);
         
             
@@ -51,7 +56,6 @@ public class XMSOutboundPlay {
     	} catch (IOException ex) {
     		ex.printStackTrace();
         }
-        
         
         //Make an outbound call to the same address that you just received a call from
         if(isVideo)

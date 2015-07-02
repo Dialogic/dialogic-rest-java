@@ -25,7 +25,7 @@ public class MyCallbacks implements XMSEventCallback{
         switch(a_event.getEventType()){
             case CALL_CONNECTED:
                 if(myState == AppState.MAKECALL){
-                    myCall.Play("echotest.wav");
+                    myCall.Play("file://recorded/Test");
                 }else {  // is waitcall
                     //Save the connection address for later
                     addr = myCall.getConnectionAddress();
@@ -33,7 +33,7 @@ public class MyCallbacks implements XMSEventCallback{
                     myCall.RecordOptions.SetMaxTime(10);
                     //Record a file
                     myState = AppState.RECORD;
-                    myCall.Record("echotest.wav");
+                    myCall.Record("file://recorded/Test");
                 }
                 break;
             case CALL_RECORD_END:

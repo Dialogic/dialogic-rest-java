@@ -273,7 +273,7 @@ public class XMSRestConference extends XMSConference{
          
         l_conf.setMaxParties(ConferenceOptions.m_MaxParties);
     
-        l_conf.setLayout(ConferenceOptions.m_Layout) ;
+        l_conf.setLayout(Integer.toString(ConferenceOptions.m_Layout.getValue()));
         
         if(ConferenceOptions.m_CaptionEnabled) {
             
