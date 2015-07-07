@@ -335,21 +335,6 @@ public class SelectorForm extends javax.swing.JFrame {
                 // auto populate the fields
                 xmlFile = new FileInputStream(inFile);
                 readFromXMLFile(xmlFile);
-//                Document doc = new Builder().build(xmlFile);
-//                Element root = doc.getRootElement();
-//                Elements entries = root.getChildElements();
-//                for (int x = 0; x < entries.size(); x++) {
-//                    Element element = entries.get(x);
-//                    if (element.getLocalName().equals("appid") || element.getLocalName().equals("user")) {
-//                        userTextField.setText(element.getValue());
-//                    }
-//                    if (element.getLocalName().equals("baseurl") || element.getLocalName().equals("xmsAddress")) {
-//                        ipAddressTextField.setText(element.getValue());
-//                    }
-//                    if (element.getLocalName().equals("techtype")) {
-//                        typeComboBox.setSelectedItem(element.getValue());
-//                    }
-//                }
             } else if (returnVal == chooser.CANCEL_OPTION) {
                 System.out.println("No file selected");
             }
@@ -379,29 +364,9 @@ public class SelectorForm extends javax.swing.JFrame {
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-//                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-//                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-//
-//                org.w3c.dom.Document doc = docBuilder.newDocument();
-//
-//                org.w3c.dom.Element rootElement = doc.createElement("xmsconfig");
-//                doc.appendChild(rootElement);
-//
-//                org.w3c.dom.Element techType = doc.createElement("techtype");
-//                techType.appendChild(doc.createTextNode(typeComboBox.getSelectedItem().toString()));
-//                rootElement.appendChild(techType);
-//
-//                org.w3c.dom.Element baseurl = doc.createElement("baseurl");
-//                baseurl.appendChild(doc.createTextNode(ipAddressTextField.getText()));
-//                rootElement.appendChild(baseurl);
-//
-//                org.w3c.dom.Element appid = doc.createElement("appid");
-//                appid.appendChild(doc.createTextNode(userTextField.getText()));
-//                rootElement.appendChild(appid);
-//
+
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
                 Transformer transformer = transformerFactory.newTransformer();
-//                DOMSource source = new DOMSource(doc);
                 DOMSource source = getXMLSource();
                 
                 StreamResult result = new StreamResult(new File("SelectorConfiguration.xml"));
@@ -413,7 +378,7 @@ public class SelectorForm extends javax.swing.JFrame {
                 logger.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
-        new XMSObjectFactory().unblock();
+        XMSObjectFactory.unblock();
     }//GEN-LAST:event_enterButtonActionPerformed
     
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed

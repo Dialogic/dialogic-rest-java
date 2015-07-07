@@ -39,6 +39,7 @@ import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.address.AddressFactory;
 import javax.sip.SipListener;
+import javax.sip.Timeout;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionAlreadyExistsException;
 import javax.sip.TransactionTerminatedEvent;
@@ -84,6 +85,7 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
     static private Map<String, XMSSipCall> activeCallMap = new HashMap<>();
     private final Object m_synclock = new Object();
     ExecutorService executor = Executors.newFixedThreadPool(25);
+    private Response response;
 
     /**
      * Creates the sip stack, sip provider and factories for
@@ -465,6 +467,7 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 //                                logger.debug("SEND 200 OK for INFO REQUEST \n" + response);
 
                                 System.out.println(timeStamp() + "Received Info, sending OK");
+                                setLastResponse(response);
                                 st.sendResponse(response);
                                 break;
                             case Request.CANCEL:
@@ -477,6 +480,7 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 //                                logger.debug("SEND 200 OK for INVITE REQUEST \n" + response);
 
                                 System.out.println("200 OK for INVITE REQUEST -> " + response);
+                                setLastResponse(response);
                                 st.sendResponse(response);
                                 break;
                             case Request.OPTIONS:
@@ -493,6 +497,7 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 //                        logger.debug("SEND 100 TRYING RESPONSE \n" + response);
 
                         System.out.println("SENT 100 TRYING RESPONSE -> " + response);
+                        setLastResponse(response);
                         st.sendResponse(response);
                         break;
                     case Response.RINGING:
@@ -500,6 +505,7 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 //                        logger.debug("SEND 180 RINGING RESPONSE \n" + response);
 
                         System.out.println("SENT 180 RINGING RESPONSE -> " + response);
+                        setLastResponse(response);
                         st.sendResponse(response);
                         break;
                 }
@@ -541,7 +547,16 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
      */
     @Override
     public void processTimeout(TimeoutEvent te) {
-        logger.info("Process Timeout");
+        logger.info(te.getTimeout());
+        try {
+            if (te.getTimeout() == Timeout.TRANSACTION) {
+                if (te.getServerTransaction() != null) {
+                    te.getServerTransaction().sendResponse(getLastResponse());
+                }
+            }
+        } catch (Exception ex) {
+            logger.fatal(ex.getMessage(), ex);
+        }
     }
 
     /**
@@ -643,5 +658,13 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
     @Override
     protected SendCommandResponse SendCommand(XMSObject a_call, RESTOPERATION a_RESTOPERATION, String a_urlextension, String a_xmlPayload) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    private void setLastResponse(Response res) {
+        response = res;
+    }
+
+    private Response getLastResponse() {
+        return response;
     }
 }

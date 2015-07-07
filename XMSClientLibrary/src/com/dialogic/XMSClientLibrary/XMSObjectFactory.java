@@ -43,7 +43,7 @@ import org.apache.log4j.PropertyConfigurator;
 public class XMSObjectFactory {
     static private Logger logger = Logger.getLogger(XMSObjectFactory.class.getName());
     private String m_Name;
-    private final Object m_synclock = new Object();
+    private static final Object m_synclock = new Object();
     static SelectorForm selector;
     
     /**
@@ -78,10 +78,10 @@ public class XMSObjectFactory {
         return connector;
     }
 
-    public void unblock() {
+    public static void unblock() {
         synchronized (m_synclock) {
             selector.setVisible(false);
-            m_synclock.notify();
+            m_synclock.notifyAll();
         }
     }
     

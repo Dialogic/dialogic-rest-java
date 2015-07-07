@@ -99,7 +99,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
             conf.setLocalSdp(getNullSdp());
             conf.createInviteRequest(conf.getToUser(), conf.getToAddress());
             BlockIfNeeded(XMSEventType.CALL_CONNECTED);
-            conf.sendInfo(buildConfVideoMsml(name));
+            conf.sendInfo(buildConfMsml(name));
             BlockIfNeeded(XMSEventType.CALL_INFO);
             counter++;
         } catch (Exception ex) {
@@ -174,7 +174,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
             Msml.Event event = msml.getEvent();
             String eventName = event.getName();
             if (eventName != null && eventName.equalsIgnoreCase("msml.conf.nomedia")) {
-                conf.sendInfo(buildDestroyConfMsml(m_Name));
+                //conf.sendInfo(buildDestroyConfMsml(m_Name));
                 conf.createBye();
                 XMSEvent xmsEvent = new XMSEvent();
                 xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", info);
@@ -222,40 +222,8 @@ public class XMSMsmlConference extends XMSConference implements Observer {
         return sdp;
     }
 
-    private String buildConfMsml(String name) {
-        java.io.StringWriter sw = new StringWriter();
-
-        Msml msml = objectFactory.createMsml();
-        msml.setVersion("1.1");
-
-        Msml.Createconference createConf = objectFactory.createMsmlCreateconference();
-        createConf.setName(name);
-        createConf.setDeletewhen("nocontrol");
-        createConf.setMark("1");
-        createConf.setTerm(BooleanDatatype.TRUE);
-
-        AudioMixType audiomix = objectFactory.createAudioMixType();
-        audiomix.setId("mix1234");
-
-        createConf.setAudiomix(audiomix);
-        msml.getMsmlRequest().add(createConf);
-
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Msml.class);
-            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbMarshaller.marshal(msml, sw);
-
-        } catch (JAXBException ex) {
-            m_logger.error(ex.getMessage(), ex);
-        }
-
-        System.out.println("MSML CONF -> " + sw.toString());
-        return sw.toString();
-    }
-
     // to do other options in msml eg text overlay, caption, beep
-    private String buildConfVideoMsml(String name) {
+    private String buildConfMsml(String name) {
         java.io.StringWriter sw = new StringWriter();
 
         Msml msml = objectFactory.createMsml();
@@ -266,6 +234,16 @@ public class XMSMsmlConference extends XMSConference implements Observer {
         createConf.setDeletewhen("nomedia");
         createConf.setMark("1");
         createConf.setTerm(BooleanDatatype.TRUE);
+
+        VideoLayoutType videoLayout = objectFactory.createVideoLayoutType();
+
+        RootType rootType = objectFactory.createRootType();
+        rootType.setSize("VGA");
+        videoLayout.setRoot(rootType);
+
+        videoLayout.getRegion().add(buildRegion("1", "0", "0", "1"));
+        createConf.setVideolayout(videoLayout);
+
         msml.getMsmlRequest().add(createConf);
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(Msml.class);
@@ -338,7 +316,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
 //        int mark = 1;
 //        int display = 1;
         msml.getMsmlRequest().add(buildJoin("1234", name, Integer.toString(mark++), Integer.toString(display++)));
-                //        for (XMSCall c : m_partylist) {
+        //        for (XMSCall c : m_partylist) {
         //            if (c.WaitcallOptions.m_mediatype == XMSMediaType.VIDEO) {
         //                MsmlCall msmlCall = (MsmlCall) c;
         //                msml.getMsmlRequest().add(
