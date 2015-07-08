@@ -1664,10 +1664,18 @@ public class XMSRestCall extends XMSCall{
                      l_call.setContentType(MakecallOptions.m_content_type);
            } 
         }       
-     //   if(MakecallOptions.m_headers.length()>0){
-       //          l_call.setHeaders(MakecallOptions.m_headers);        
+        if(!MakecallOptions.m_headers.isEmpty()){
+            
+               String headers="";
+               for(int i=0;i<MakecallOptions.m_headers.size();i++){
+                  headers+=MakecallOptions.m_headers.get(i);
+                  if(i!=MakecallOptions.m_headers.size()){
+                    headers+="CRLFPPLACEHOLDER12345";
+                }
+               }
+               l_call.setHeaders(headers);        
         
-         // }
+        }
         
         //logger.debug("RAW REST generated...." + l_WMS.toString());
           ByteArrayOutputStream l_newDialog = new ByteArrayOutputStream();
@@ -1685,6 +1693,7 @@ public class XMSRestCall extends XMSCall{
             tmp=tmp.replaceAll("\r","&#xD;");
             tmp=tmp.replaceAll( "\n","&#xA;");
             l_rqStr=l_rqStr.replaceAll("SDPPPLACEHOLDER12345", tmp);
+            l_rqStr=l_rqStr.replaceAll("CRLFPPLACEHOLDER12345", "&#xD;&#xA;");
          
         //logger.debug ("Returning Payload:\n " + l_rqStr);
         return l_rqStr;  // Return the requested string...

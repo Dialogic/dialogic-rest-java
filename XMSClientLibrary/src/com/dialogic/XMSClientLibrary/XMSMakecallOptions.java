@@ -4,6 +4,9 @@
  */
 package com.dialogic.XMSClientLibrary;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  *
@@ -21,6 +24,7 @@ public class XMSMakecallOptions {
     String m_displayName;
     String m_content;
     String m_content_type;
+    List m_headers=new ArrayList();
     /**
      * This will Instantiate and Reset all the values to their defaults
      */
@@ -42,6 +46,7 @@ public class XMSMakecallOptions {
         m_displayName="";
         m_content="";
         m_content_type="";
+        m_headers.clear();
     }
      /**
      * Set if content should be sent on the outbound call
@@ -52,6 +57,16 @@ public class XMSMakecallOptions {
     public void SetContent(String a_type,String a_content){
         m_content=a_content;
         m_content_type=a_type;
+    }
+    
+         /**
+     * Set if SIP Headers should be sent on the outbound call
+     *  
+     * @param a_headers -  The SIP headers to send
+     */
+    public void AddHeader(String a_header){
+       
+        m_headers.add(a_header);
     }
 
     /**
@@ -147,6 +162,12 @@ public class XMSMakecallOptions {
                 " signalingEnabled="+m_signalingEnabled+
                 " contenttype="+m_content_type+
                 " content="+m_content;
+                if(!m_headers.isEmpty()){
+                RtnStr+=" headers=";
+                for(int i=0;i<m_headers.size();i++){
+                    RtnStr+=m_headers.get(i);
+                }
+                }
    
         
                 if(m_sdp != null)
