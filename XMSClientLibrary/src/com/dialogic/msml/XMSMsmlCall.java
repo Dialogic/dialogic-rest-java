@@ -20,16 +20,13 @@ import com.dialogic.xms.msml.IterateSendType;
 import com.dialogic.xms.msml.Msml;
 import com.dialogic.xms.msml.ObjectFactory;
 import com.dialogic.xms.msml.Play;
-import com.dialogic.xms.msml.Play.Media;
 import com.dialogic.xms.msml.Record;
 import com.dialogic.xms.msml.Send;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,15 +43,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
-import org.xml.sax.InputSource;
-import org.apache.commons.io.FilenameUtils;
 
 /**
  *
@@ -73,17 +65,18 @@ public class XMSMsmlCall extends XMSCall implements Observer {
     String callerToAdr = null;
     private final Object m_synclock = new Object();
     static boolean isBlocked = false;
-    static boolean isACKOn200;
     static boolean isDropCall = false;
     static int mediaStatusCode;
     private static String connectionAddress;
     static XMSEvent xmsEvent;
     static ObjectFactory objectFactory = new ObjectFactory();
+    String filename;
 
     public XMSMsmlCall(XMSMsmlConnector connector) {
         try {
             this.connector = connector;
             m_connector = connector;
+            this.filename = connector.getConfigFileName();
             this.setFromAddress(Inet4Address.getLocalHost().getHostAddress());
             setState(XMSCallState.NULL);
         } catch (Exception ex) {
@@ -351,7 +344,8 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 } else {
                     setState(XMSCallState.OFFERED);
                     XMSEvent xmsEvent = new XMSEvent();
-                    xmsEvent.CreateEvent(XMSEventType.CALL_OFFERED, this, "", "", "");
+                    xmsEvent.CreateEvent(XMSEventType.CALL_OFFERED, this, "", "",
+                            e.getReq().toString());
                     UnblockIfNeeded(xmsEvent);
                 }
 
@@ -370,13 +364,13 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     }
                     setState(XMSCallState.ACCEPTED);
                     XMSEvent xmsEvent = new XMSEvent();
-                    xmsEvent.CreateEvent(XMSEventType.CALL_UPDATED, this, "", "", "");
+                    xmsEvent.CreateEvent(XMSEventType.CALL_UPDATED, this, "", "",
+                            e.getRes().toString());
                     UnblockIfNeeded(xmsEvent);
                 }
             } else if (this.callMode == MsmlCallMode.OUTBOUND) {
                 if (e.getCall() == caller) {
                     msmlSip.createAckRequest(e.getRes());
-                    caller.createAckRequest(e.getRes());
                 } else if (caller == null) {
                     if (callerToAdr != msmlSip.getToAddress()) {
                         Makecall(callerToUserId + "@" + callerToAdr);
@@ -394,14 +388,16 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 if (e.getCall() == caller) {
                     setState(XMSCallState.CONNECTED);
                     XMSEvent xmsEvent = new XMSEvent();
-                    xmsEvent.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "", "");
+                    xmsEvent.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "",
+                            e.getReq().toString());
                     UnblockIfNeeded(xmsEvent);
                 }
             } else if (this.callMode == MsmlCallMode.OUTBOUND) {
                 if (e.getCall() == caller) {
                     setState(XMSCallState.CONNECTED);
                     XMSEvent xmsEvent = new XMSEvent();
-                    xmsEvent.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "", "");
+                    xmsEvent.CreateEvent(XMSEventType.CALL_CONNECTED, this, "", "",
+                            e.getRes().toString());
                     UnblockIfNeeded(xmsEvent);
                 }
             }
@@ -429,7 +425,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     }
                 }
             } else if (e.getCall() == caller) {
-
+                msmlSip.sendInfoResponse();
             }
         } else if (e.getType().equals(MsmlEventType.INFOREQUEST)) {
             if (!MakecallOptions.m_OKOnInfoEnabled) {
@@ -563,12 +559,21 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     MakecallOptions.EnableACKOn200(false);
                     MakecallOptions.EnableOKOnInfo(false);
                     setState(XMSCallState.DISCONNECTED);
-                    XMSEvent xmsEvent = new XMSEvent();
-                    xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", "");
+                    xmsEvent = new XMSEvent();
+                    String data = null;
+                    if (e.getReq() != null) {
+                        data = e.getReq().toString();
+                    } else if (e.getRes() != null) {
+                        data = e.getRes().toString();
+                    }
+                    xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", data);
+                    setLastEvent(xmsEvent);
                     UnblockIfNeeded(xmsEvent);
                 } else if (getState() != XMSCallState.DISCONNECTED) {
                     if (e.getReq() != null) {
                         setState(XMSCallState.DISCONNECTED);
+                        xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", e.getReq().toString());
+                        setLastEvent(xmsEvent);
                         msmlSip.doByeOk(e.getReq());
                         caller.createBye();
                     }
@@ -587,6 +592,8 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     } else {
                         if (e.getReq() != null) {
                             setState(XMSCallState.DISCONNECTED);
+                            xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", e.getReq().toString());
+                            setLastEvent(xmsEvent);
                             caller.doByeOk(e.getReq());
                             msmlSip.createBye();
                         }
@@ -910,28 +917,24 @@ public class XMSMsmlCall extends XMSCall implements Observer {
 
     private void setXMSInfo(XMSSipCall c) {
         try {
-            FileInputStream xmlFile = new FileInputStream("ConnectorConfig.xml");
+            System.out.println("FILENAME! -> " + this.filename);
+            FileInputStream xmlFile = new FileInputStream(this.filename);
             Document doc = new Builder().build(xmlFile);
             Element root = doc.getRootElement();
             Elements entries = root.getChildElements();
             for (int x = 0; x < entries.size(); x++) {
                 Element element = entries.get(x);
-                if (element.getLocalName().equals("user")) {
+                if (element.getLocalName().equals("appid")) {
                     c.setToUser(element.getValue());
                 }
-                if (element.getLocalName().equals("xmsAddress")) {
+                if (element.getLocalName().equals("baseurl")) {
                     c.setToAddress(element.getValue());
-
                 }
             }
         } catch (Exception ex) {
             Logger.getLogger(XMSSipCall.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void setAckOn200(Boolean value) {
-        this.isACKOn200 = value;
     }
 
     /**

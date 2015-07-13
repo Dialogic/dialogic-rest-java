@@ -65,9 +65,10 @@ public class XMSSipCall extends Observable {
     private String toAddr;
     private String toUser;
     static XMSSipCall xmsCall;
-    static boolean isACKOn200 = true;
-    static boolean isOKOnInfo = true;
+    boolean isACKOn200 = true;
+    boolean isOKOnInfo = true;
     static boolean isInvite = false;
+    private Request lastInfo = null;
     private Map<String, Object> headers = new HashMap<>();
     static private Map<String, FromHeader> fromHeadersMap = new HashMap<>();
     static private Map<String, ToHeader> toHeadersMap = new HashMap<>();
@@ -114,9 +115,11 @@ public class XMSSipCall extends Observable {
                 this.createOptionsResponse(request);
                 break;
             case Request.INFO:
-                if (isOKOnInfo) {
+                String infoMsg = new String(request.getRawContent());
+                if (isOKOnInfo && !infoMsg.contains("<media_control>")) {
                     createInfoResponse(request);
                 }
+                this.setLastInfo(request);
                 MsmlEvent info = createRequestEvent(request, MsmlEventType.INFOREQUEST);
                 setValue(info);
                 break;
@@ -401,7 +404,8 @@ public class XMSSipCall extends Observable {
             }
             if (contactHeader != null) {
                 infoOkResponse.addHeader(contactHeader);
-                logger.info("CREATING INFO RESPONSE TO XMS");
+                logger.info("CREATING INFO RESPONSE TO XMS" + infoOkResponse);
+                System.out.println("CREATING INFO RESPONSE TO XMS" + infoOkResponse);
                 sipConnector.sendResponse(infoOkResponse, this);
             }
         } catch (Exception ex) {
@@ -610,6 +614,10 @@ public class XMSSipCall extends Observable {
         } catch (ParseException ex) {
             logger.fatal(ex.getMessage(), ex);
         }
+    }
+
+    public void sendInfoResponse() {
+        createInfoResponse(this.getLastInfo());
     }
 
     /**
@@ -907,5 +915,19 @@ public class XMSSipCall extends Observable {
 
     public void addToWaitList() {
         sipConnector.addToWaitList(this);
+    }
+
+    /**
+     * @return the lastInfo
+     */
+    public Request getLastInfo() {
+        return lastInfo;
+    }
+
+    /**
+     * @param lastInfo the lastInfo to set
+     */
+    public void setLastInfo(Request lastInfo) {
+        this.lastInfo = lastInfo;
     }
 }

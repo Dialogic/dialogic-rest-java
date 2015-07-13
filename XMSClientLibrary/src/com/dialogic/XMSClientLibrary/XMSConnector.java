@@ -69,8 +69,6 @@ public abstract class XMSConnector {
     /**
      * FUNCTIONS
      */
-
-
     /**
      * Initial constructor for the connector. It will do the following: - parse
      * data from the configuration file. - through it into the member variables
@@ -141,7 +139,7 @@ public abstract class XMSConnector {
      * !!todo :
      *
      * HISTORY :
-     ************************************************************************
+     * ***********************************************************************
      */
     protected XMSReturnCode Register(XMSCall a_callobj) {
 
@@ -164,7 +162,7 @@ public abstract class XMSConnector {
      * !!todo :
      *
      * HISTORY :
-     ************************************************************************
+     * ***********************************************************************
      */
 //TODO This Send Interface is real REST specific.. should genricize it
     // possibly adding a XMSSendCommandArgument class that is extended for
@@ -244,7 +242,7 @@ public abstract class XMSConnector {
      *
      * @return
      */
-    String getConfigFileName() {
+    public String getConfigFileName() {
         return m_ConfigFileName;
     }
 

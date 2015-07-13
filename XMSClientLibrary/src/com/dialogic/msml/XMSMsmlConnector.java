@@ -94,8 +94,9 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
      * @param myIpAddress
      * @param myPort
      */
-    public XMSMsmlConnector(String myIpAddress, int myPort) {
+    public XMSMsmlConnector(String filename, String myIpAddress, int myPort) {
         m_type = "MSML";
+        m_ConfigFileName = filename;
         if (sipFactory == null) {
             sipFactory = SipFactory.getInstance();
             sipFactory.setPathName("gov.nist"); // denotes the SIP stack
