@@ -1245,9 +1245,9 @@ public class XMSRestCall extends XMSCall{
                     
                     //Check the caller_uri to see if this is a RTC or SIP.  To do this will need to parst the raw string
                     logger.info("Processing incoming event");
-                       int start=l_evt.rawstring.indexOf("name=\"caller_uri\" value=\"");
+                       int start=l_evt.rawstring.indexOf("name=\"caller_uri\" value=\"")+25;
                     
-                       int end=l_evt.rawstring.indexOf("/>", start);
+                       int end=l_evt.rawstring.indexOf("\" />", start);
                        if(start > -1 && end > -1){
                             String caller_uri = unescapeXML((String) l_evt.rawstring.subSequence(start, end));
                             
@@ -1260,12 +1260,12 @@ public class XMSRestCall extends XMSCall{
                        //TODO Fixt this to something nicer
                     //Check the caller_uri to see if this is a RTC or SIP.  To do this will need to parst the raw string
                     logger.info("Processing incoming event");
-                       start=l_evt.rawstring.indexOf("name=\"called_uri\" value=\"");
+                       start=l_evt.rawstring.indexOf("name=\"called_uri\" value=\"")+25;
                     
-                       end=l_evt.rawstring.indexOf("/>", start);
+                       end=l_evt.rawstring.indexOf("\" />", start);
                        if(start > -1 && end > -1){
+                           
                             String called_uri = unescapeXML((String) l_evt.rawstring.subSequence(start, end));
-                            
                             setCalledAddress(called_uri);   
                        } else{
                            logger.info("Can't detect called_uri in inbound message, setting to empty string");
@@ -1273,9 +1273,10 @@ public class XMSRestCall extends XMSCall{
                            setCalledAddress("");
                        }
                        //TODO fix this too
-                       start=l_evt.rawstring.indexOf("name=\"caller_uri\" value=\"");
+                       start=l_evt.rawstring.indexOf("name=\"caller_uri\" value=\"")+25;
                     
                        end=l_evt.rawstring.indexOf("/>", start);
+                      
                        if(start > -1 && end > -1){
                             String calling_uri = unescapeXML((String) l_evt.rawstring.subSequence(start, end));
                             
