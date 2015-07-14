@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.TooManyListenersException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogTerminatedEvent;
@@ -68,8 +69,8 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 
     // Objects used to communicate to the JAIN SIP API.
     SipFactory sipFactory;          // Used to access the SIP API.
-    SipStack sipStack;              // The SIP stack.
-    SipProvider sipProvider;        // Used to send SIP messages.
+    static SipStack sipStack;              // The SIP stack.
+    static SipProvider sipProvider;        // Used to send SIP messages.
     MessageFactory messageFactory;  // Used to create SIP message factory.
     HeaderFactory headerFactory;    // Used to create SIP headers.
     AddressFactory addressFactory;  // Used to create SIP address factory.
@@ -117,21 +118,23 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
 
             // Sip provider with listening point
             ListeningPoint lp = sipStack.createListeningPoint(myIpAddress, myPort, "udp");
-            sipProvider = sipStack.createSipProvider(lp);
+            // TODO if multiple providers then have a flag and modify code, make stack/provider non-static.
+            if (sipProvider == null) {
+                sipProvider = sipStack.createSipProvider(lp);
+            }
             logger.info("SipProvider Created {}", sipProvider);
 
             int counter = 0;
             Iterator it = sipStack.getSipProviders();
             while (it.hasNext()) {
                 Object e = it.next();
-                //System.out.println("Providers -> " + e);
                 counter++;
             }
 
-            if (counter == 1) {
+            if (counter == 1 && sipListener == null) {
                 sipListener = this;
-                //sipProvider.addSipListener(sipListener);
             }
+
             sipProvider.addSipListener(sipListener);
             this.headerFactory = sipFactory.createHeaderFactory();
             this.messageFactory = sipFactory.createMessageFactory();
@@ -668,4 +671,5 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
     private Response getLastResponse() {
         return response;
     }
+
 }

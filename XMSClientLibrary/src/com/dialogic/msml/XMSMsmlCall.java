@@ -584,10 +584,14 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                         //media active, send dialog exit before bye
                         msmlSip.createDialogEndRequest(buildDialogExit("Play"));
                         setState(XMSCallState.DISCONNECTED);
+                        xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", e.getReq().toString());
+                        setLastEvent(xmsEvent);
                         caller.doByeOk(e.getReq());
                     } else if (getState() == XMSCallState.RECORD) {
                         msmlSip.createDialogEndRequest(buildDialogExit("Record"));
                         setState(XMSCallState.DISCONNECTED);
+                        xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", e.getReq().toString());
+                        setLastEvent(xmsEvent);
                         caller.doByeOk(e.getReq());
                     } else {
                         if (e.getReq() != null) {
