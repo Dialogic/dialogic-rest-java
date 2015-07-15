@@ -66,7 +66,8 @@ public class XMSMsmlCall extends XMSCall implements Observer {
     private final Object m_synclock = new Object();
     static boolean isBlocked = false;
     static boolean isDropCall = false;
-    static int mediaStatusCode;
+    private int mediaStatusCode;
+    static boolean isRemoteDropCall = false;
     private static String connectionAddress;
     static XMSEvent xmsEvent;
     static ObjectFactory objectFactory = new ObjectFactory();
@@ -224,12 +225,17 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 msmlSip.sendInfo(buildPlayMsml(filename));
                 setState(XMSCallState.PLAY);
                 BlockIfNeeded(XMSEventType.CALL_INFO);
-                if (mediaStatusCode == 200) {
+                if (this.getMediaStatusCode() == 200) {
                     BlockIfNeeded(XMSEventType.CALL_PLAY_END);
+                } else {
+                    return XMSReturnCode.FAILURE;
                 }
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        if (isRemoteDropCall) {
+            return XMSReturnCode.FAILURE;
         }
         return XMSReturnCode.SUCCESS;
     }
@@ -241,12 +247,17 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 msmlSip.sendInfo(buildRecordMsml(filename));
                 setState(XMSCallState.RECORD);
                 BlockIfNeeded(XMSEventType.CALL_INFO);
-                if (mediaStatusCode == 200) {
+                if (this.getMediaStatusCode() == 200) {
                     BlockIfNeeded(XMSEventType.CALL_RECORD_END);
+                } else {
+                    return XMSReturnCode.FAILURE;
                 }
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        if (isRemoteDropCall) {
+            return XMSReturnCode.FAILURE;
         }
         return XMSReturnCode.SUCCESS;
     }
@@ -258,8 +269,10 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 msmlSip.sendInfo(buildCollectMsml());
                 setState(XMSCallState.COLLECTDIGITS);
                 BlockIfNeeded(XMSEventType.CALL_INFO);
-                if (mediaStatusCode == 200) {
+                if (this.getMediaStatusCode() == 200) {
                     BlockIfNeeded(XMSEventType.CALL_COLLECTDIGITS_END);
+                } else {
+                    return XMSReturnCode.FAILURE;
                 }
             }
         } catch (Exception ex) {
@@ -301,8 +314,10 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 m_state = XMSCallState.CUSTOM;
                 msmlSip.sendInfo(msml);
                 BlockIfNeeded(XMSEventType.CALL_INFO);
-                if (mediaStatusCode == 200) {
+                if (this.getMediaStatusCode() == 200) {
                     BlockIfNeeded(XMSEventType.CALL_INFO);
+                } else {
+                    return XMSReturnCode.FAILURE;
                 }
             }
         } catch (Exception ex) {
@@ -413,14 +428,15 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                         Msml msml = unmarshalObject(new ByteArrayInputStream((byte[]) e.getRes().getRawContent()));
                         Msml.Result result = msml.getResult();
                         if (result.getResponse().equalsIgnoreCase("200")) {
-                            mediaStatusCode = Integer.parseInt(result.getResponse());
-                            System.out.println("jaxb" + result.getResponse());
+                            this.setMediaStatusCode(Integer.parseInt(result.getResponse()));
                             XMSEvent xmsEvent = new XMSEvent();
                             xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, result.getResponse(), "", reponseMessage);
                             UnblockIfNeeded(xmsEvent);
-                        } else if (result.getResponse().equalsIgnoreCase("400")) {
-                            System.out.println("Response 400 received");
-                            mediaStatusCode = Integer.parseInt(result.getResponse());
+                        } else {
+                            this.setMediaStatusCode(Integer.parseInt(result.getResponse()));
+                            XMSEvent xmsEvent = new XMSEvent();
+                            xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, result.getResponse(), "", reponseMessage);
+                            UnblockIfNeeded(xmsEvent);
                         }
                     }
                 }
@@ -544,6 +560,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                             }
                             UnblockIfNeeded(xmsEvent);
                         } else {
+                            isRemoteDropCall = true;
+                            xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this,
+                                    "", "Call Dropped", "Dialogend and close connection");
+                            xmsEvent.setReason("Call Dropped");
+                            setLastEvent(xmsEvent);
                             msmlSip.createBye();
                         }
                     }
@@ -965,5 +986,19 @@ public class XMSMsmlCall extends XMSCall implements Observer {
             e.printStackTrace();
         }
         return msml;
+    }
+
+    /**
+     * @return the mediaStatusCode
+     */
+    public int getMediaStatusCode() {
+        return mediaStatusCode;
+    }
+
+    /**
+     * @param mediaStatusCode the mediaStatusCode to set
+     */
+    public void setMediaStatusCode(int mediaStatusCode) {
+        this.mediaStatusCode = mediaStatusCode;
     }
 }
