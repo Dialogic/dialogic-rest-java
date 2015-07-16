@@ -55,7 +55,7 @@ import nu.xom.ParsingException;
  * @author ssatyana
  */
 public class SelectorForm extends javax.swing.JFrame {
-    
+
     static final Logger logger = Logger.getLogger(SelectorForm.class.getName());
     static FileInputStream xmlFile;
 
@@ -68,7 +68,7 @@ public class SelectorForm extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
-                    
+
                 }
             }
             initComponents();
@@ -291,7 +291,7 @@ public class SelectorForm extends javax.swing.JFrame {
     private void fileTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_fileTextFieldActionPerformed
-    
+
     private void fileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileButtonActionPerformed
         try {
             JFileChooser chooser = new JFileChooser("");
@@ -300,7 +300,7 @@ public class SelectorForm extends javax.swing.JFrame {
             chooser.setDialogTitle("Open config file");
             chooser.setFileFilter(xmlfilter);
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            
+
             int returnVal = chooser.showOpenDialog((java.awt.Component) null);
             File inFile = null;
             if (returnVal == chooser.APPROVE_OPTION) {
@@ -322,7 +322,7 @@ public class SelectorForm extends javax.swing.JFrame {
                 BufferedReader in = new BufferedReader(new FileReader(inFile));
                 FileWriter fstream = new FileWriter("SelectorConfiguration.xml", true);
                 BufferedWriter out = new BufferedWriter(fstream);
-                
+
                 String line = in.readLine();
                 while (line != null) {
                     out.write(line);
@@ -342,14 +342,14 @@ public class SelectorForm extends javax.swing.JFrame {
             logger.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }//GEN-LAST:event_fileButtonActionPerformed
-    
+
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         this.dispose();
         System.exit(0);
     }//GEN-LAST:event_cancelButtonActionPerformed
-    
+
     private void enterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterButtonActionPerformed
-        
+
         if (xmlFile != null) {
             File f = new File("SelectorConfiguration.xml");
             if (f.exists()) {
@@ -359,8 +359,10 @@ public class SelectorForm extends javax.swing.JFrame {
         } else {
             try {
                 if (typeComboBox.getSelectedItem() == "Type"
-                        || ipAddressTextField.getText().isEmpty() || userTextField.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(new JFrame(), "Please Choose a config file or enter data in the fields", "Dialog",
+                        || ipAddressTextField.getText().isEmpty() || userTextField.getText().isEmpty()
+                        || ipAddressTextField.getText().equalsIgnoreCase("http://enter_ip_adr:81/default/")
+                        || ipAddressTextField.getText().contains("enter_ip_adr")) {
+                    JOptionPane.showMessageDialog(new JFrame(), "Please Choose a config file or enter valid address in the field", "Dialog",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -368,7 +370,7 @@ public class SelectorForm extends javax.swing.JFrame {
                 TransformerFactory transformerFactory = TransformerFactory.newInstance();
                 Transformer transformer = transformerFactory.newTransformer();
                 DOMSource source = getXMLSource();
-                
+
                 StreamResult result = new StreamResult(new File("SelectorConfiguration.xml"));
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes");
                 transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -380,21 +382,23 @@ public class SelectorForm extends javax.swing.JFrame {
         }
         XMSObjectFactory.unblock();
     }//GEN-LAST:event_enterButtonActionPerformed
-    
+
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         typeComboBox.setSelectedItem("Type");
         ipAddressTextField.setText("");
         userTextField.setText("");
     }//GEN-LAST:event_clearButtonActionPerformed
-    
+
     private void typeComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_typeComboBoxActionPerformed
         if (typeComboBox.getSelectedItem() == "REST") {
             userTextField.setText("app");
+            ipAddressTextField.setText("http://enter_ip_adr:81/default/");
         } else if (typeComboBox.getSelectedItem() == "MSML") {
             userTextField.setText("msml");
+            ipAddressTextField.setText("");
         }
     }//GEN-LAST:event_typeComboBoxActionPerformed
-    
+
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         final JFileChooser SaveAs = new JFileChooser();
         SaveAs.setApproveButtonText("Save");
@@ -402,7 +406,7 @@ public class SelectorForm extends javax.swing.JFrame {
         if (actionDialog != JFileChooser.APPROVE_OPTION) {
             return;
         }
-        
+
         File fileName = new File(SaveAs.getSelectedFile() + ".xml");
         //BufferedWriter outFile = null;
         try {
@@ -410,7 +414,7 @@ public class SelectorForm extends javax.swing.JFrame {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = getXMLSource();
-            
+
             StreamResult result = new StreamResult(fileName);
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -419,7 +423,7 @@ public class SelectorForm extends javax.swing.JFrame {
             System.out.println(ex);
         }
     }//GEN-LAST:event_saveButtonActionPerformed
-    
+
     private void readFromXMLFile(FileInputStream file) {
         Document doc;
         try {
@@ -442,30 +446,30 @@ public class SelectorForm extends javax.swing.JFrame {
             Logger.getLogger(SelectorForm.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private DOMSource getXMLSource() {
         DOMSource source = null;
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            
+
             org.w3c.dom.Document doc = docBuilder.newDocument();
-            
+
             org.w3c.dom.Element rootElement = doc.createElement("xmsconfig");
             doc.appendChild(rootElement);
-            
+
             org.w3c.dom.Element techType = doc.createElement("techtype");
             techType.appendChild(doc.createTextNode(typeComboBox.getSelectedItem().toString()));
             rootElement.appendChild(techType);
-            
+
             org.w3c.dom.Element baseurl = doc.createElement("baseurl");
             baseurl.appendChild(doc.createTextNode(ipAddressTextField.getText()));
             rootElement.appendChild(baseurl);
-            
+
             org.w3c.dom.Element appid = doc.createElement("appid");
             appid.appendChild(doc.createTextNode(userTextField.getText()));
             rootElement.appendChild(appid);
-            
+
             source = new DOMSource(doc);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, ex.getMessage(), ex);

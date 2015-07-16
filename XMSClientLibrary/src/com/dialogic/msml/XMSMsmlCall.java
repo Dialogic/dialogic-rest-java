@@ -667,7 +667,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         }
         Play.Media media = objectFactory.createPlayMedia();
         Play.Media.Audio audio = objectFactory.createPlayMediaAudio();
-        audio.setUri(fileName + ".wav");
+        if (fileName.contains(".wav")) {
+            audio.setUri("file://" + fileName);
+        } else {
+            audio.setUri("file://" + fileName + ".wav");
+        }
 
         audio.setFormat("audio/wav;codec=L16");
         audio.setAudiosamplerate(BigInteger.valueOf(16000));
@@ -677,7 +681,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         Play.Media.Video video = null;
         if (PlayOptions.m_mediaType == XMSMediaType.VIDEO) {
             video = objectFactory.createPlayMediaVideo();
-            video.setUri(fileName + ".vid");
+            if (fileName.contains(".vid")) {
+                video.setUri("file://" + fileName);
+            } else {
+                video.setUri("file://" + fileName + ".vid");
+            }
             video.setFormat("video/x-vid;codec=h264");
             media.getAudioOrVideo().add(video);
         }
@@ -745,12 +753,20 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         record.setBeep(BooleanDatatype.TRUE);
 
         if (RecordOptions.m_mediaType == XMSMediaType.VIDEO) {
-            record.setVideodest(fileName + ".vid");
+            if (fileName.contains(".vid")) {
+                record.setVideodest("file://" + fileName);
+            } else {
+                record.setVideodest("file://" + fileName + ".vid");
+            }
             record.setFormat("video/x-vid");
         }
 
         if (fileName != null && !fileName.isEmpty()) {
-            record.setAudiodest(fileName + ".wav");
+            if (fileName.contains(".wav")) {
+                record.setAudiodest("file://" + fileName);
+            } else {
+                record.setAudiodest("file://" + fileName + ".wav");
+            }
         }
         if (record.getFormat() != null) {
             record.setFormat("audio/wav;" + record.getFormat() + ";codec=L16,h264");

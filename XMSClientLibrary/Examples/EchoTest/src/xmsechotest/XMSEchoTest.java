@@ -31,8 +31,7 @@ public class XMSEchoTest {
         myCall.RecordOptions.SetMaxTime(10);
         myCall.RecordOptions.SetTerminateDigits("#");
         //Record a file
-        //myCall.Record("echotest.wav");
-        myCall.Record("file://recorded/Test");
+        myCall.Record("echotest.wav");
 
         //Hangup the call
         myCall.Dropcall();
@@ -41,8 +40,7 @@ public class XMSEchoTest {
         myCall.Makecall(addr);
 
         //Playback the file recorded
-        //myCall.Play("echotest.wav");
-        myCall.Play("file://recorded/Test");
+        myCall.Play("echotest.wav");
 
         //Hangup the call
         myCall.Dropcall();

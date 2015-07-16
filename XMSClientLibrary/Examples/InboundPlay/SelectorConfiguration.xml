@@ -1,5 +1,5 @@
 <xmsconfig>
-<techtype>MSML</techtype>
-<baseurl>146.152.64.141</baseurl>
-<appid>msml</appid>
+<techtype>REST</techtype>
+<baseurl>http://146.152.64.141:81/default/</baseurl>
+<appid>app</appid>
 </xmsconfig>
