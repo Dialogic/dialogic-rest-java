@@ -63,6 +63,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
     static ObjectFactory objectFactory = new ObjectFactory();
     static int mark = 1;
     static int display = 1;
+    String filename;
 
     public XMSMsmlConference() {
         m_type = "MSML";
@@ -85,6 +86,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
         m_type = a_connector.getType();
         connector = (XMSMsmlConnector) a_connector;
         m_connector = a_connector;
+        this.filename = connector.getConfigFileName();
         createConf(m_Name);
 
     }
@@ -174,7 +176,7 @@ public class XMSMsmlConference extends XMSConference implements Observer {
             Msml.Event event = msml.getEvent();
             String eventName = event.getName();
             if (eventName != null && eventName.equalsIgnoreCase("msml.conf.nomedia")) {
-                //conf.sendInfo(buildDestroyConfMsml(m_Name));
+                conf.sendInfo(buildDestroyConfMsml(m_Name));
                 conf.createBye();
                 XMSEvent xmsEvent = new XMSEvent();
                 xmsEvent.CreateEvent(XMSEventType.CALL_DISCONNECTED, this, "", "", info);
@@ -194,16 +196,16 @@ public class XMSMsmlConference extends XMSConference implements Observer {
 
     private void setXMSInfo(XMSSipCall c) {
         try {
-            FileInputStream xmlFile = new FileInputStream("ConnectorConfig.xml");
+            FileInputStream xmlFile = new FileInputStream(this.filename);
             Document doc = new Builder().build(xmlFile);
             Element root = doc.getRootElement();
             Elements entries = root.getChildElements();
             for (int x = 0; x < entries.size(); x++) {
                 Element element = entries.get(x);
-                if (element.getLocalName().equals("user")) {
+                if (element.getLocalName().equals("appid")) {
                     c.setToUser(element.getValue());
                 }
-                if (element.getLocalName().equals("xmsAddress")) {
+                if (element.getLocalName().equals("baseurl")) {
                     c.setToAddress(element.getValue());
 
                 }
@@ -308,14 +310,19 @@ public class XMSMsmlConference extends XMSConference implements Observer {
         Msml msml = objectFactory.createMsml();
         msml.setVersion("1.1");
 
-        Msml.Modifyconference modifyConf = objectFactory.createMsmlModifyconference();
-        modifyConf.setId("conf:" + name);
-        modifyConf.setVideolayout(videolayout);
+        if (videolayout != null) {
+            Msml.Modifyconference modifyConf = objectFactory.createMsmlModifyconference();
+            modifyConf.setId("conf:" + name);
+            modifyConf.setVideolayout(videolayout);
 
-        msml.getMsmlRequest().add(modifyConf);
-//        int mark = 1;
+            msml.getMsmlRequest().add(modifyConf);
+
+            msml.getMsmlRequest().add(buildJoin("1234", name, Integer.toString(mark++), Integer.toString(display++)));
+        } else {
+            msml.getMsmlRequest().add(buildJoinAudio("1234", name, Integer.toString(mark++), Integer.toString(display++)));
+        }
+        //        int mark = 1;
 //        int display = 1;
-        msml.getMsmlRequest().add(buildJoin("1234", name, Integer.toString(mark++), Integer.toString(display++)));
         //        for (XMSCall c : m_partylist) {
         //            if (c.WaitcallOptions.m_mediatype == XMSMediaType.VIDEO) {
         //                MsmlCall msmlCall = (MsmlCall) c;
@@ -403,40 +410,43 @@ public class XMSMsmlConference extends XMSConference implements Observer {
     }
 
     public VideoLayoutType getLayout(int num) {
-        VideoLayoutType videoLayout = objectFactory.createVideoLayoutType();
+        if (num > 0) {
+            VideoLayoutType videoLayout = objectFactory.createVideoLayoutType();
 
-        RootType rootType = objectFactory.createRootType();
-        rootType.setSize("VGA");
-        videoLayout.setRoot(rootType);
-        if (num == 1) {
-            videoLayout.getRegion().add(buildRegion("1", "0", "0", "1"));
-        } else if (num == 2) {
-            videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/2"));
-            videoLayout.getRegion().add(buildRegion("2", "50%", "0", "1/2"));
-        } else if (num <= 4) {
-            videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/2"));
-            videoLayout.getRegion().add(buildRegion("2", "50%", "0", "1/2"));
-            videoLayout.getRegion().add(buildRegion("3", "0", "50%", "1/2"));
-            videoLayout.getRegion().add(buildRegion("4", "50%", "50%", "1/2"));
-        } else if (num <= 6) {
-            videoLayout.getRegion().add(buildRegion("1", "0", "0", "2/3"));
-            videoLayout.getRegion().add(buildRegion("2", "66.666%", "0", "1/3"));
-            videoLayout.getRegion().add(buildRegion("3", "66.666%", "33.333%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("4", "66.666%", "66.666%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("5", "33.333%", "66.666%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("6", "0", "66.666%", "1/3"));
-        } else if (num <= 9 || num > 9) {
-            videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/3"));
-            videoLayout.getRegion().add(buildRegion("2", "33.333%", "0", "1/3"));
-            videoLayout.getRegion().add(buildRegion("3", "66.666%", "0", "1/3"));
-            videoLayout.getRegion().add(buildRegion("4", "0", "33.333%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("5", "33.333%", "33.333%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("6", "66.666%", "33.333%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("7", "0", "66.666%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("8", "33.333%", "66.666%", "1/3"));
-            videoLayout.getRegion().add(buildRegion("9", "66.666%", "66.666%", "1/3"));
+            RootType rootType = objectFactory.createRootType();
+            rootType.setSize("VGA");
+            videoLayout.setRoot(rootType);
+            if (num == 1) {
+                videoLayout.getRegion().add(buildRegion("1", "0", "0", "1"));
+            } else if (num == 2) {
+                videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/2"));
+                videoLayout.getRegion().add(buildRegion("2", "50%", "0", "1/2"));
+            } else if (num <= 4) {
+                videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/2"));
+                videoLayout.getRegion().add(buildRegion("2", "50%", "0", "1/2"));
+                videoLayout.getRegion().add(buildRegion("3", "0", "50%", "1/2"));
+                videoLayout.getRegion().add(buildRegion("4", "50%", "50%", "1/2"));
+            } else if (num <= 6) {
+                videoLayout.getRegion().add(buildRegion("1", "0", "0", "2/3"));
+                videoLayout.getRegion().add(buildRegion("2", "66.666%", "0", "1/3"));
+                videoLayout.getRegion().add(buildRegion("3", "66.666%", "33.333%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("4", "66.666%", "66.666%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("5", "33.333%", "66.666%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("6", "0", "66.666%", "1/3"));
+            } else if (num <= 9 || num > 9) {
+                videoLayout.getRegion().add(buildRegion("1", "0", "0", "1/3"));
+                videoLayout.getRegion().add(buildRegion("2", "33.333%", "0", "1/3"));
+                videoLayout.getRegion().add(buildRegion("3", "66.666%", "0", "1/3"));
+                videoLayout.getRegion().add(buildRegion("4", "0", "33.333%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("5", "33.333%", "33.333%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("6", "66.666%", "33.333%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("7", "0", "66.666%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("8", "33.333%", "66.666%", "1/3"));
+                videoLayout.getRegion().add(buildRegion("9", "66.666%", "66.666%", "1/3"));
+            }
+            return videoLayout;
         }
-        return videoLayout;
+        return null;
     }
 
     public Region buildRegion(String id, String left, String top, String relativeSize) {
@@ -468,6 +478,27 @@ public class XMSMsmlConference extends XMSConference implements Observer {
         streamType3.setDir("to-id1");
 
         join.getStream().add(streamType1);
+        join.getStream().add(streamType2);
+        join.getStream().add(streamType3);
+
+        return join;
+    }
+
+    public Msml.Join buildJoinAudio(String conn, String name, String mark, String display) {
+        Msml.Join join = objectFactory.createMsmlJoin();
+        join.setId1("conn:" + conn);
+        join.setId2("conf:" + name);
+        join.setMark(mark);
+
+        StreamType streamType2 = objectFactory.createStreamType();
+        streamType2.setMedia("audio");
+        streamType2.setDir("from-id1");
+        //streamType2.setEchoCancel("enable");
+
+        StreamType streamType3 = objectFactory.createStreamType();
+        streamType3.setMedia("audio");
+        streamType3.setDir("to-id1");
+
         join.getStream().add(streamType2);
         join.getStream().add(streamType3);
 

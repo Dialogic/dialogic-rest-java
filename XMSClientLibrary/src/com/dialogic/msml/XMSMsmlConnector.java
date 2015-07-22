@@ -353,8 +353,13 @@ public class XMSMsmlConnector extends XMSConnector implements SipListener, Runna
                 logger.debug("RESPONSE BUSY HERE RECIEVED \n" + response);
                 break;
             case Response.DECLINE:
-                logger.info("RESPONSE DECLINE RECIEVED: " + contactAddress);
-                logger.debug("RESPONSE DECLINE RECIEVED \n" + response);
+//                logger.info("RESPONSE DECLINE RECIEVED: " + contactAddress);
+//                logger.debug("RESPONSE DECLINE RECIEVED \n" + response);
+                System.out.println("RESPONSE DECLINE RECIEVED -> " + response);
+                call = activeCallMap.get(dialog.getCallId().getCallId());
+                if (call != null) {
+                    call.handleStackResponse(response, cSeq, dialog);
+                }
                 activeCallMap.remove(dialog.getCallId().getCallId());
                 logger.info("HASHMAP SIZE: " + activeCallMap.size());
                 break;

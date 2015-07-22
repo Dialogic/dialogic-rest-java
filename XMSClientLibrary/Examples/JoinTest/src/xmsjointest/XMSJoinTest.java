@@ -17,7 +17,7 @@ public class XMSJoinTest {
     public static void main(String[] args) {
         // TODO code application logic here
         XMSObjectFactory myFactory = new XMSObjectFactory();
-        XMSConnector myConnector = myFactory.CreateConnector("XMSConnectorConfig.xml");
+        XMSConnector myConnector = myFactory.CreateConnector();
         XMSCall myCall1 = myFactory.CreateCall(myConnector);
         XMSCall myCall2 = myFactory.CreateCall(myConnector);
         

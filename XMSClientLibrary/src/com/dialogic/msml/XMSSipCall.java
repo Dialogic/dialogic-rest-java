@@ -182,6 +182,10 @@ public class XMSSipCall extends Observable {
                 break;
             case Response.ACCEPTED:
                 break;
+            case Response.DECLINE:
+                MsmlEvent decline = createResponseEvent(response, MsmlEventType.CANCEL);
+                setValue(decline);
+                break;
             case Response.REQUEST_TERMINATED:
                 break;
         }
@@ -558,6 +562,12 @@ public class XMSSipCall extends Observable {
 
         ToHeader toHeader = (ToHeader) request.getHeader("To");
         Address reqToAddress = toHeader.getAddress();
+        URI toURI = reqToAddress.getURI();
+        int port = 0;
+        if (toURI.isSipURI()) {
+            SipURI fromSipURI = (SipURI) toURI;
+            port = fromSipURI.getPort();
+        }
         try {
             Response okResponse = messageFactory.createResponse(Response.OK, request);
 
@@ -565,7 +575,19 @@ public class XMSSipCall extends Observable {
             okResponse.addHeader(supportedHeader);
             Header sessionExpiresHeader = request.getHeader("Session-Expires");
             okResponse.addHeader(sessionExpiresHeader);
-            Address contactAddress = addressFactory.createAddress(reqToAddress.toString());
+
+            Address contactAddress = null;
+            if (port <= 0) {
+                String reqToAddressString = reqToAddress.toString();
+                if (reqToAddressString.contains("<")) {
+                    reqToAddressString = reqToAddressString.replace("<", "");
+                    reqToAddressString = reqToAddressString.replace(">", "");
+                }
+                contactAddress = addressFactory.createAddress(reqToAddressString
+                        + ":" + sipConnector.sipProvider.getListeningPoint("udp").getPort());
+            } else {
+                contactAddress = addressFactory.createAddress(reqToAddress.toString());
+            }
             ContactHeader contactHeader = headerFactory.createContactHeader(contactAddress);
             okResponse.addHeader(contactHeader);
 
@@ -574,9 +596,9 @@ public class XMSSipCall extends Observable {
 
             AllowHeader allowHeader = headerFactory.createAllowHeader("INVITE, BYE, ACK, CANCEL, OPTIONS, INFO");
             okResponse.addHeader(allowHeader);
-            ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
-
-            okResponse.setContent(request.getContent(), contentTypeHeader);
+//            ContentTypeHeader contentTypeHeader = headerFactory.createContentTypeHeader("application", "sdp");
+//
+//            okResponse.setContent(request.getContent(), contentTypeHeader);
 
             sipConnector.sendResponse(okResponse, this);
         } catch (ParseException | InvalidArgumentException ex) {

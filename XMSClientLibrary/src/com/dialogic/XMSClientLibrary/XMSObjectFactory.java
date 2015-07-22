@@ -6,6 +6,7 @@ package com.dialogic.XMSClientLibrary;
 
 import com.dialogic.gui.SelectorForm;
 import com.dialogic.msml.XMSMsmlCall;
+import com.dialogic.msml.XMSMsmlConference;
 import com.dialogic.msml.XMSMsmlConnector;
 import java.io.*;
 //import java.util.logging.Level;
@@ -47,7 +48,7 @@ public class XMSObjectFactory {
     /**
      * CTor for the XMSObjectFactory
      */
-    public XMSObjectFactory(){
+    public XMSObjectFactory() {
         m_Name = "XMSObjectfactory";
         PropertyConfigurator.configure("log4j.properties");
         //logger.setLevel(Level.ALL);
@@ -84,13 +85,13 @@ public class XMSObjectFactory {
     }
 
     /**
-     * This function is used to auto detect the technology type and make 
-     * an object of the correct type
+     * This function is used to auto detect the technology type and make an
+     * object of the correct type
      *
      * @param a_ConfigFileName
      * @return
      */
-    public XMSConnector CreateConnector(String a_ConfigFileName){
+    public XMSConnector CreateConnector(String a_ConfigFileName) {
 
         FileInputStream xmlFile = null;
         /**
@@ -106,7 +107,7 @@ public class XMSObjectFactory {
          * Set up the XOM library to begin parsing.
          */
         Builder builder = new Builder();
-        Document doc=null;
+        Document doc = null;
 
         /**
          * parse the file.
@@ -127,22 +128,22 @@ public class XMSObjectFactory {
          * Parse the XMS config file.
          *
          * The routine will read in the confif file and using the keyword
-         * "techtype" determine if a REST or MSML connector is needed. 
-         * The specific type of connector object will be returned.
+         * "techtype" determine if a REST or MSML connector is needed. The
+         * specific type of connector object will be returned.
          *
          */
         for (int x = 0; x < entries.size(); x++) {
 
             Element element = entries.get(x);
             //System.out.println(element.getLocalName());
-            if (element.getLocalName().equals("techtype") ) {
+            if (element.getLocalName().equals("techtype")) {
                 String l_techtype = new String();
                 l_techtype = element.getValue();
                 logger.info("Tech Type is " + l_techtype);
-                if (l_techtype.equals("REST")){
+                if (l_techtype.equals("REST")) {
                     return new XMSRestConnector(a_ConfigFileName);
                     //return new XMSRestConnector();
-                } else if (l_techtype.equals("MSML")){
+                } else if (l_techtype.equals("MSML")) {
                     try {
                         // this is local address and port, do we need a config file for this?
                         return new XMSMsmlConnector(a_ConfigFileName, Inet4Address.getLocalHost().getHostAddress(), 5070);
@@ -158,16 +159,16 @@ public class XMSObjectFactory {
 
     /**
      * This is used to create a new XMSCallObject of the correct type.
+     *
      * @param a_type
-     * @return 
-     * WARNING: When using the STRING version of this you must call the
+     * @return WARNING: When using the STRING version of this you must call the
      * XMSCall.Initialize() with the XMSConnector at a later time.
      */
-    public XMSCall CreateCall(String a_type){
+    public XMSCall CreateCall(String a_type) {
 
-        if(a_type.equals("REST")){
+        if (a_type.equals("REST")) {
             logger.info("Creating a REST call Object via String");
-            XMSCall l_call= new XMSRestCall();
+            XMSCall l_call = new XMSRestCall();
             return l_call;
 
         }
@@ -175,16 +176,17 @@ public class XMSObjectFactory {
     }
 
     /**
-     * This is used to create a new XMSCallObject of the correct type and 
-     * tie it into the connector
+     * This is used to create a new XMSCallObject of the correct type and tie it
+     * into the connector
+     *
      * @param a_type
      * @return
      */
-    public XMSCall CreateCall(XMSConnector a_conn){
+    public XMSCall CreateCall(XMSConnector a_conn) {
 
         logger.info("a_conn.m_type" + a_conn.m_type);
 
-        if (a_conn.getType().equals("REST")){
+        if (a_conn.getType().equals("REST")) {
             logger.info("Creating a REST Call Object via XMSRestConnector");
             XMSCall l_call = new XMSRestCall(a_conn);
             return l_call;
@@ -200,15 +202,14 @@ public class XMSObjectFactory {
      * This is used to create a new XMSConference Object of the correct type.
      *
      * @param a_type
-     * @return 
-     * WARNING: When using the STRING version of this you must call the
+     * @return WARNING: When using the STRING version of this you must call the
      * XMSCall.Initialize() with the XMSConnector at a later time.
      */
-    public XMSConference CreateConference(String a_type){
+    public XMSConference CreateConference(String a_type) {
 
-        if(a_type.equals("REST")){
+        if (a_type.equals("REST")) {
             logger.info("Creating a REST Conference Object via String");
-            XMSConference l_conf= new XMSRestConference();
+            XMSConference l_conf = new XMSRestConference();
             return l_conf;
 
         }
@@ -216,18 +217,22 @@ public class XMSObjectFactory {
     }
 
     /**
-     * This is used to create a new XMSCallObject of the correct type and 
-     * tie it into the connector
+     * This is used to create a new XMSCallObject of the correct type and tie it
+     * into the connector
+     *
      * @param a_type
      * @return
      */
-    public XMSConference CreateConference(XMSConnector a_conn){
+    public XMSConference CreateConference(XMSConnector a_conn) {
 
         logger.info("a_conn.m_type" + a_conn.m_type);
 
-        if(a_conn.getType().equals("REST")){
+        if (a_conn.getType().equals("REST")) {
             logger.info("Creating a REST Conference Object via XMSRestConnector");
             XMSConference l_conf = new XMSRestConference(a_conn);
+            return l_conf;
+        } else if (a_conn.getType().equals("MSML")) {
+            XMSConference l_conf = new XMSMsmlConference(a_conn);
             return l_conf;
         }
         logger.error("Error detecting the type of the passed XMSConnector");
