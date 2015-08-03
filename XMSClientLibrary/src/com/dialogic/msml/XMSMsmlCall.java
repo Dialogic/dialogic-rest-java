@@ -305,18 +305,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
             if (this.msmlSip != null && filename != null) {
                 this.msmlSip.sendInfo(buildPlayCollectMsml(filename));
                 setState(XMSCallState.PLAYCOLLECT);
-                synchronized (m_synclock) {
-                    while (!isBlocked) {
-                        m_synclock.wait();
-                    }
-                    isBlocked = false;
-                    // waiting for digits
-                    synchronized (m_synclock) {
-                        while (!isBlocked) {
-                            m_synclock.wait();
-                        }
-                        isBlocked = false;
-                    }
+                BlockIfNeeded(XMSEventType.CALL_INFO);
+                if (this.getMediaStatusCode() == 200) {
+                    BlockIfNeeded(XMSEventType.CALL_COLLECTDIGITS_END);
+                } else {
+                    return XMSReturnCode.FAILURE;
                 }
             }
         } catch (Exception ex) {
@@ -578,7 +571,25 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                                         break;
                                 }
                             }
-                            UnblockIfNeeded(xmsEvent);
+                            if (xmsEvent == null) {
+                                xmsEvent = new XMSEvent();
+                                List<JAXBElement<String>> eventNameValueList = event.getNameAndValue();
+                                Map<String, String> events = new HashMap<>();
+                                for (int i = 0, n = eventNameValueList.size(); i < n; i += 2) {
+                                    System.out.println("[i] -> " + eventNameValueList.get(i).getValue());
+                                    System.out.println("[i+1] -> " + eventNameValueList.get(i + 1).getValue());
+
+                                    events.put(eventNameValueList.get(i).getValue(),
+                                            eventNameValueList.get(i + 1).getValue());
+                                }
+                                String dialogExitStatus = events.get("dialog.exit.status");
+                                String dialogExitDesc = events.get("dialog.exit.description");
+                                xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, dialogExitStatus, dialogExitDesc, info);
+                                xmsEvent.setReason(dialogExitDesc);
+                                setLastEvent(xmsEvent);
+                            } else {
+                                UnblockIfNeeded(xmsEvent);
+                            }
                         } else {
                             isRemoteDropCall = true;
                             xmsEvent = new XMSEvent();
@@ -1007,35 +1018,110 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
-    private static String buildPlayCollectMsml(String filename) {
-        String msml = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-                + "<msml version=\"1.1\">\n"
-                + "<dialogstart target=\"conn:1234\" type=\"application/moml+xml\">\n"
-                + "<group topology=\"parallel\">\n"
-                + "<play barge=\"true\" cleardb=\"true\">\n"
-                + "	<audio uri=\"" + filename + "\"/>\n"
-                + " <playexit>\n"
-                + "	 <send target=\"collect\" event=\"starttimer\"/>\n"
-                + " </playexit>\n"
-                + "</play>\n"
-                + "<collect fdt=\"3s\" idt=\"10s\">\n"
-                + "	<pattern digits=\"x\">\n"
-                + "		<send target=\"source\" event=\"match\" namelist=\"dtmf.end dtmf.digits\"/>\n"
-                + "	</pattern>\n"
-                + "	<detect>\n"
-                + "		<send target=\"source\" event=\"detect\" namelist=\"dtmf.end dtmf.digits\"/>\n"
-                + "	</detect>\n"
-                + "	<noinput>\n"
-                + "		<send target=\"source\" event=\"noinput\" namelist=\"dtmf.end dtmf.digits\"/>\n"
-                + "	</noinput>\n"
-                + "	<nomatch>\n"
-                + "		<send target=\"source\" event=\"nomatch\" namelist=\"dtmf.end dtmf.digits\"/>	\n"
-                + "	</nomatch>\n"
-                + "</collect>\n"
-                + "</group>\n"
-                + "</dialogstart>\n"
-                + "</msml>";
-        return msml;
+    private String buildPlayCollectMsml(String fileName) {
+        java.io.StringWriter sw = new StringWriter();
+
+        Msml msml = objectFactory.createMsml();
+        msml.setVersion("1.1");
+
+        Msml.Dialogstart dialogstart = objectFactory.createMsmlDialogstart();
+        dialogstart.setTarget("conn:1234");
+        dialogstart.setType(DialogLanguageDatatype.APPLICATION_MOML_XML);
+        dialogstart.setName("Collect");
+
+        Group group = objectFactory.createGroup();
+        group.setTopology("parallel");
+
+        Play play = objectFactory.createPlay();
+        play.setBarge(BooleanDatatype.TRUE);
+        play.setCleardb(BooleanDatatype.TRUE);
+
+        Play.Media media = objectFactory.createPlayMedia();
+        Play.Media.Audio audio = objectFactory.createPlayMediaAudio();
+        if (fileName.contains(".wav")) {
+            audio.setUri("file://" + fileName);
+        } else {
+            audio.setUri("file://" + fileName + ".wav");
+        }
+        media.getAudioOrVideo().add(audio);
+        play.getAudioOrVideoOrMedia().add(objectFactory.createPlayMedia(media));
+
+        Play.Playexit playexit = objectFactory.createPlayPlayexit();
+        Send sendPlay = objectFactory.createSend();
+        sendPlay.setTarget("collect");
+        sendPlay.setEvent("starttimer");
+        playexit.getSend().add(sendPlay);
+        play.setPlayexit(playexit);
+
+        group.getPrimitive().add(objectFactory.createPlay(play));
+
+        Collect collect = objectFactory.createCollect();
+        if (!CollectDigitsOptions.m_timeoutValue.equalsIgnoreCase("0s")) {
+            collect.setFdt(CollectDigitsOptions.m_timeoutValue);
+        } else {
+            collect.setFdt("10s");
+        }
+        collect.setIdt("2s");
+        collect.setStarttimer(BooleanDatatype.TRUE);
+        collect.setCleardb(BooleanDatatype.TRUE);
+        Collect.Pattern termDigPattern = objectFactory.createCollectPattern();
+        termDigPattern.setDigits(CollectDigitsOptions.m_terminateDigits);
+
+        Send sendDigit = objectFactory.createSend();
+        sendDigit.setTarget("source");
+        sendDigit.setEvent("termKey");
+        sendDigit.setNamelist("dtmf.digits dtmf.len dtmf.end");
+        termDigPattern.getSend().add(sendDigit);
+        collect.getPattern().add(termDigPattern);
+
+        Collect.Pattern digitsPattern = objectFactory.createCollectPattern();
+        int length = Integer.parseInt(CollectDigitsOptions.m_maxDigits);
+        StringBuilder stringBuilder = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            stringBuilder.append("x");
+        }
+        digitsPattern.setDigits(stringBuilder.toString());
+        collect.getPattern().add(digitsPattern);
+
+        IterateSendType noinput = objectFactory.createIterateSendType();
+        Send sendNoInput = objectFactory.createSend();
+        sendNoInput.setTarget("source");
+        sendNoInput.setEvent("noinput");
+        sendNoInput.setNamelist("dtmf.digits dtmf.len dtmf.end");
+        noinput.getSend().add(sendNoInput);
+        collect.setNoinput(noinput);
+
+        IterateSendType nomatch = objectFactory.createIterateSendType();
+        Send sendNoMatch = objectFactory.createSend();
+        sendNoMatch.setTarget("source");
+        sendNoMatch.setEvent("nomatch");
+        sendNoMatch.setNamelist("dtmf.digits dtmf.len dtmf.end");
+        nomatch.getSend().add(sendNoMatch);
+        collect.setNomatch(nomatch);
+
+        Collect.Dtmfexit dtmfexit = objectFactory.createCollectDtmfexit();
+        Send sendDtmf = objectFactory.createSend();
+        sendDtmf.setTarget("source");
+        sendDtmf.setEvent("dtmfexit");
+        sendDtmf.setNamelist("dtmf.digits dtmf.len dtmf.end");
+        dtmfexit.getSend().add(sendDtmf);
+        collect.setDtmfexit(dtmfexit);
+
+        group.getPrimitive().add(objectFactory.createCollect(collect));
+
+        dialogstart.getMomlRequest().add(objectFactory.createGroup(group));
+        msml.getMsmlRequest().add(dialogstart);
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Msml.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            jaxbMarshaller.marshal(msml, sw);
+
+        } catch (JAXBException ex) {
+            logger.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+        //System.out.println("MSML COLLECT DIGITS -> " + sw.toString());
+        return sw.toString();
     }
 
     private void setXMSInfo(XMSSipCall c) {
