@@ -11,7 +11,6 @@ import com.dialogic.XMSClientLibrary.XMSEvent;
 import com.dialogic.XMSClientLibrary.XMSEventType;
 import com.dialogic.XMSClientLibrary.XMSMediaType;
 import com.dialogic.XMSClientLibrary.XMSReturnCode;
-import static com.dialogic.msml.XMSMsmlConference.objectFactory;
 import com.dialogic.xms.msml.BooleanDatatype;
 import com.dialogic.xms.msml.Collect;
 import com.dialogic.xms.msml.DialogLanguageDatatype;
@@ -87,6 +86,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         }
     }
 
+    /**
+     * Wait for a new MSML call.
+     *
+     * @return Event - This will return a CALL_CONNECTED if in AutoConnect mode,
+     * CALL_OFFERED if not.
+     */
     @Override
     public XMSReturnCode Waitcall() {
         try {
@@ -106,6 +111,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Make a MSML call to the specified destination
+     *
+     * @param dest
+     * @return Event - This generates a CALL_CONNECTED event
+     */
     @Override
     public XMSReturnCode Makecall(String dest) {
         try {
@@ -132,7 +143,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 this.msmlSip = new XMSSipCall(this.connector);
                 this.msmlSip.addObserver(this);
 
-                // get XMS ip address and user from config file
+                // get XMS ip address and user from config file(m_ConfigFileName)
                 setXMSInfo(this.msmlSip);
                 this.msmlSip.setFromAddress(Inet4Address.getLocalHost().getHostAddress());
                 if (this.caller != null && this.caller.getRemoteSdp() != null) {
@@ -166,6 +177,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Accept an incoming call.
+     *
+     * @return
+     */
     @Override
     public XMSReturnCode Acceptcall() {
         try {
@@ -181,6 +197,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Answer an incoming call.
+     *
+     * @return
+     */
     @Override
     public XMSReturnCode Answercall() {
         try {
@@ -196,6 +217,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Drops the call by sending messages to the XMS server.
+     *
+     * @return
+     */
     @Override
     public XMSReturnCode Dropcall() {
         try {
@@ -211,6 +237,13 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Play a file
+     *
+     * @param filename - File to be played
+     * @return SUCCESS if play completed and the dialog exited normally, FAILURE
+     * if error
+     */
     @Override
     public XMSReturnCode Play(String filename) {
         try {
@@ -233,6 +266,13 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Record a file
+     *
+     * @param filename - Name of the file recorded to
+     * @return SUCCESS if record completed and the dialog exited normally,
+     * FAILURE if error
+     */
     @Override
     public XMSReturnCode Record(String filename) {
         try {
@@ -255,6 +295,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Collect the DTMF Digit information
+     *
+     * @return SUCCESS if collect completed and the dialog exited normally,
+     * FAILURE if error
+     */
     @Override
     public XMSReturnCode CollectDigits() {
         try {
@@ -274,6 +320,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Join / Route 2 Calls together
+     *
+     * @param call
+     * @return SUCCESS if join completed, FAILURE if error
+     */
     @Override
     public XMSReturnCode Join(XMSCall call) {
         try {
@@ -289,6 +341,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 BlockIfNeeded(XMSEventType.CALL_INFO);
                 if (this.getMediaStatusCode() == 200) {
                     BlockIfNeeded(XMSEventType.CALL_UPDATED);
+                    // return success based on the script
                 } else {
                     return XMSReturnCode.FAILURE;
                 }
@@ -299,6 +352,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Play prompt and Collect the DTMF Digit information
+     *
+     * @param filename - File to be played
+     * @return SUCCESS if play collect completed, FAILURE if error
+     */
     @Override
     public XMSReturnCode PlayCollect(String filename) {
         try {
@@ -318,6 +377,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return XMSReturnCode.SUCCESS;
     }
 
+    /**
+     * Send custom MSML content
+     *
+     * @param msml - the MSML content
+     * @return SUCCESS if INFO response is 200, FAILURE otherwise
+     */
     @Override
     public XMSReturnCode SendInfo(String msml) {
         try {
@@ -345,12 +410,19 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         this.fromAddr = fromAddress;
     }
 
+    /**
+     * This is the Notify handler that will be called by EventThread when new
+     * events are created.
+     *
+     * @param o
+     * @param o1
+     */
     @Override
     public void update(Observable o, Object o1) {
         MsmlEvent e = (MsmlEvent) o1;
         if (e.getType().equals(MsmlEventType.INCOMING)) {
             if (this.getCallMode() == MsmlCallMode.INBOUND) {
-
+                // incoming call, send INVITE request to XMS
                 FromHeader fromHeader = (FromHeader) e.getReq().getHeader("From");
                 Address reqToAddress = fromHeader.getAddress();
                 String incomingAdr = reqToAddress.toString();
@@ -366,8 +438,10 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         } else if (e.getType().equals(MsmlEventType.RINGING)) {
             if (this.getCallMode() == MsmlCallMode.INBOUND) {
                 if (WaitcallOptions.m_autoConnectEnabled) {
+                    // if auto connect then accept the incoming call
                     Acceptcall();
                 } else {
+                    // if not then create an xms event and return
                     setState(XMSCallState.OFFERED);
                     XMSEvent xmsEvent = new XMSEvent();
                     xmsEvent.CreateEvent(XMSEventType.CALL_OFFERED, this, "", "",
@@ -383,6 +457,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     if (this.caller.getLocalSdp() == null) {
                         this.caller.setLocalSdp(this.msmlSip.getRemoteSdp());
                     }
+                    // send 200 ok for invite req
                     Answercall();
                 } else {
                     if (this.caller.getLocalSdp() == null) {
@@ -399,6 +474,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     this.msmlSip.createAckRequest(e.getRes());
                 } else if (this.caller == null) {
                     if (this.callerToAdr != this.msmlSip.getToAddress()) {
+                        // connected to XMS now make an outbound call tot he dest
                         Makecall(this.callerToUserId + "@" + this.callerToAdr);
                     }
                 }
@@ -409,8 +485,8 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 }
             }
         } else if (e.getType().equals(MsmlEventType.CONNECTED)) {
-            // recieved ack from inbound call and its connected
             if (this.getCallMode() == MsmlCallMode.INBOUND) {
+                // recieved ACK from inbound call and its connected
                 if (e.getCall() == this.caller) {
                     setState(XMSCallState.CONNECTED);
                     XMSEvent xmsEvent = new XMSEvent();
@@ -428,12 +504,20 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 }
             }
         } else if (e.getType().equals(MsmlEventType.INFORESPONSE)) {
+            // response to an INFO request
             if (e.getCall() == this.msmlSip) {
                 String reponseMessage = new String(e.getRes().getRawContent());
                 if (getState() == XMSCallState.CUSTOM) {
+                    // if custom msml content then create an event and return
+                    if (e.getRes().getRawContent() != null) {
+                        Msml msml = unmarshalObject(new ByteArrayInputStream((byte[]) e.getRes().getRawContent()));
+                        Msml.Result result = msml.getResult();
+                        this.setMediaStatusCode(Integer.parseInt(result.getResponse()));
+                    }
                     XMSEvent xmsEvent = new XMSEvent();
                     xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, "", "", reponseMessage);
                     setLastEvent(xmsEvent);
+                    UnblockIfNeeded(xmsEvent);
                 } else if (getState() != XMSCallState.DISCONNECTED) {
                     if (e.getRes().getRawContent() != null) {
                         Msml msml = unmarshalObject(new ByteArrayInputStream((byte[]) e.getRes().getRawContent()));
@@ -457,6 +541,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 this.msmlSip.sendInfoResponse();
             }
         } else if (e.getType().equals(MsmlEventType.INFOREQUEST)) {
+            // INFO request from XMS
             if (!MakecallOptions.m_OKOnInfoEnabled) {
                 this.msmlSip.createInfoResponse(e.getReq());
             }
@@ -485,7 +570,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     Msml msml = unmarshalObject(new ByteArrayInputStream((byte[]) e.getReq().getRawContent()));
                     Msml.Event event = msml.getEvent();
                     String eventName = event.getName();
-                    //get the id
+
                     Pattern dialogPattern = Pattern.compile("dialog:(.*)");
                     Matcher dialogMatcher = dialogPattern.matcher(event.getId());
                     String dialogType = null;
@@ -503,7 +588,6 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                             events.put(eventNameValueList.get(i).getValue(),
                                     eventNameValueList.get(i + 1).getValue());
                         }
-                        // check if the event if for play                        
                         if (dialogType != null) {
                             xmsEvent = new XMSEvent();
                             xmsEvent.setInternalData(info);
@@ -673,7 +757,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         }
     }
 
-    // change to xml beans/jaxb objects
+    /**
+     * Builds MSML play script
+     *
+     * @param fileName - File to be played.
+     * @return MSML script.
+     */
     private String buildPlayMsml(String fileName) {
         java.io.StringWriter sw = new StringWriter();
 
@@ -774,6 +863,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * Builds MSML record script
+     *
+     * @param fileName - File to be recorded to.
+     * @return MSML script.
+     */
     private String buildRecordMsml(String fileName) {
         java.io.StringWriter sw = new StringWriter();
 
@@ -862,6 +957,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * Builds MSML dialog end script
+     *
+     * @param type - Either play or record.
+     * @return MSML script.
+     */
     private static String buildDialogExit(String type) {
         java.io.StringWriter sw = new StringWriter();
 
@@ -885,6 +986,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * Builds MSML collect script
+     *
+     * @return MSML script.
+     */
     private String buildCollectMsml() {
         java.io.StringWriter sw = new StringWriter();
 
@@ -963,6 +1069,14 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * Builds MSML join script
+     *
+     * @param c1 - Caller 1
+     * @param c2 - Caller 2
+     * @param isVideo - true if video call, false otherwise
+     * @return MSML script.
+     */
     private static String buildJoinMsml(XMSSipCall c1, XMSSipCall c2, boolean isVideo) {
         java.io.StringWriter sw = new StringWriter();
 
@@ -1018,6 +1132,12 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * Builds MSML play collect script
+     *
+     * @param fileName - File to be played.
+     * @return MSML script.
+     */
     private String buildPlayCollectMsml(String fileName) {
         java.io.StringWriter sw = new StringWriter();
 
@@ -1124,6 +1244,11 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         return sw.toString();
     }
 
+    /**
+     * This function gets the XMS related data from the config file
+     *
+     * @param c
+     */
     private void setXMSInfo(XMSSipCall c) {
         try {
             System.out.println("FILENAME! -> " + this.filename);
