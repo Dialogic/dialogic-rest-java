@@ -340,8 +340,8 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                 setState(XMSCallState.JOINING);
                 BlockIfNeeded(XMSEventType.CALL_INFO);
                 if (this.getMediaStatusCode() == 200) {
-                    BlockIfNeeded(XMSEventType.CALL_UPDATED);
-                    // return success based on the script
+                    //BlockIfNeeded(XMSEventType.CALL_UPDATED);
+                    return XMSReturnCode.SUCCESS;
                 } else {
                     return XMSReturnCode.FAILURE;
                 }
@@ -349,7 +349,7 @@ public class XMSMsmlCall extends XMSCall implements Observer {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        return XMSReturnCode.SUCCESS;
+        return XMSReturnCode.FAILURE;
     }
 
     /**
@@ -558,14 +558,13 @@ public class XMSMsmlCall extends XMSCall implements Observer {
                     xmsEvent = new XMSEvent();
                     xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, "", "", info);
                     setLastEvent(xmsEvent);
-                } else if (mediaControl != null) {
+                } else if (mediaControl != null && e.getCall() == this.msmlSip) {
                     if (this.caller != null) {
                         this.caller.sendInfoWithoutConn(info);
                     }
                     xmsEvent = new XMSEvent();
                     xmsEvent.CreateEvent(XMSEventType.CALL_INFO, this, "", "", info);
                     setLastEvent(xmsEvent);
-
                 } else {
                     Msml msml = unmarshalObject(new ByteArrayInputStream((byte[]) e.getReq().getRawContent()));
                     Msml.Event event = msml.getEvent();
